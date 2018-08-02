@@ -147,6 +147,8 @@ contains
    !                   4  aluminum
    !                   5  lead
    !                   6  iron
+   !                   7  silicon SiO2
+   !                   8  oxygen SiO2
    !    ncold   cold hydrogen option
    !                   0   none (default)
    !                   1   ortho hydrogen
@@ -2484,6 +2486,14 @@ contains
    real(kr),parameter::fe1=2.86e-8_kr
    real(kr),parameter::fe3=55.454e0_kr
    real(kr),parameter::fe4=12.9e0_kr
+   real(kr),parameter::sio2s1=4.9137e-8_kr
+   real(kr),parameter::sio2s2=5.4047e-8_kr
+   real(kr),parameter::sio2s3=28.0855e0_kr
+   real(kr),parameter::sio2s4=2.167e0_kr   ! bound coherent xs for Si in SiO3
+   real(kr),parameter::sio2o1=4.9137e-8_kr
+   real(kr),parameter::sio2o2=5.4047e-8_kr
+   real(kr),parameter::sio2o3=15.999e0_kr
+   real(kr),parameter::sio2o4=4.232e0_kr   ! bound coherent xs for O in SiO3
    real(kr),parameter::twothd=0.666666666667e0_kr
    real(kr),parameter::sqrt3=1.732050808e0_kr
    real(kr),parameter::toler=1.e-6_kr
@@ -2534,19 +2544,33 @@ contains
       a=fe1
       amsc=fe3
       scoh=fe4/natom
+   else if (lat.eq.7) then
+      ! si-sio2 constants.
+      a=sio2s1
+      c=sio2s2
+      amsc=sio2s3
+      scoh=2*sio2s4/natom
+   else if (lat.eq.8) then
+      ! o-sio2 constants.
+      a=sio2o1
+      c=sio2o2
+      amsc=sio2o3
+      scoh=2.2*sio2o4/natom
    else
-      call error('coh','illegal lat.',' ')
+      call error('coh','illegal lat for a,c,amsc,scoh.',' ')
    endif
-   if (lat.lt.4) then
+   if (lat.lt.4.or.(lat.ge.7.and.lat.le.8)) then
       c1=4/(3*a*a)
       c2=1/(c*c)
       scon=scoh*(4*pi)**2/(2*a*a*c*sqrt3*econ)
-   else if (lat.ge.4.and.lat.le.5) then
+   else if (lat.lt.6) then
       c1=3/(a*a)
       scon=scoh*(4*pi)**2/(16*a*a*a*econ)
-   else if (lat.eq.6) then
+   else if (lat.lt.7) then
       c1=2/(a*a)
       scon=scoh*(4*pi)**2/(8*a*a*a*econ)
+   else
+      call error('coh','illegal lat for c1,c2,scon.',' ')
    endif
    wint=0
    t2=hbar/(2*amu*amsc)
@@ -2555,151 +2579,158 @@ contains
    nw=maxb
 
    !--compute lattice factors for hexagonal lattices
-   if (lat.gt.3) go to 210
-   phi=ulim/twopis
-   i1m=int(a*sqrt(phi))
-   i1m=i1m+1
-   k=0
-   do i1=1,i1m
-      l1=i1-1
-      i2m=int((l1+sqrt(3*(a*a*phi-l1*l1)))/2)
-      i2m=i2m+1
-      do i2=i1,i2m
-         l2=i2-1
-         x=phi-c1*(l1*l1+l2*l2-l1*l2)
-         i3m=0
-         if (x.gt.zero) i3m=int(c*sqrt(x))
-         i3m=i3m+1
-         do i3=1,i3m
-            l3=i3-1
-            w1=2
-            if (l1.eq.l2) w1=1
-            w2=2
-            if (l1.eq.0.or.l2.eq.0) w2=1
-            if (l1.eq.0.and.l2.eq.0) w2=1
-            if (l1.eq.0.and.l2.eq.0) w2=w2/2
-            w3=2
-            if (l3.eq.0) w3=1
-            tsq=tausq(l1,l2,l3,c1,c2,twopis)
-            if (tsq.gt.zero.and.tsq.le.ulim) then
-               tau=sqrt(tsq)
-               w=exp(-tsq*t2*wint)*w1*w2*w3/tau
-               f=w*formf(lat,l1,l2,l3)
-               if (k.le.0.or.tsq.le.tsqx) then
-                  k=k+1
-                  if ((2*k).gt.nw) call error('coh',&
-                    'storage exceeded',' ')
-                  b(ifl+2*k-2)=tsq
-                  b(ifl+2*k-1)=f
+   ! used for lat = 1,2,3,7,8 - graphite, beryllium, beryllium oxide,
+   !                            silicon in SiO2, oxygen in SiO2
+   ! lat=7,8 use different values for w1,w2,w3
+   if (lat.lt.4.or.(lat.ge.7.and.lat.le.8)) then
+      phi=ulim/twopis
+      i1m=int(a*sqrt(phi))
+      i1m=i1m+1
+      k=0
+      do i1=1,i1m
+         l1=i1-1
+         i2m=int((l1+sqrt(3*(a*a*phi-l1*l1)))/2)
+         i2m=i2m+1
+         do i2=i1,i2m
+            l2=i2-1
+            x=phi-c1*(l1*l1+l2*l2-l1*l2)
+            i3m=0
+            if (x.gt.zero) i3m=int(c*sqrt(x))
+            i3m=i3m+1
+            do i3=1,i3m
+               l3=i3-1
+               if (lat.lt.4) then
+                  w1=2
+                  if (l1.eq.l2) w1=1
+                  w2=2
+                  if (l1.eq.0.or.l2.eq.0) w2=1
+                  if (l1.eq.0.and.l2.eq.0) w2=1
+                  if (l1.eq.0.and.l2.eq.0) w2=w2/2
+                  w3=2
+                  if (l3.eq.0) w3=1
                else
-                  i=0
-                  idone=0
-                  do while (i.lt.k.and.idone.eq.0)
-                     i=i+1
-                     if (tsq.ge.b(ifl+2*i-2).and.&
-                       tsq.lt.(1+eps)*b(ifl+2*i-2)) then
+                  w1=1
+                  w2=1
+                  w3=1
+               endif
+               tsq=tausq(l1,l2,l3,c1,c2,twopis)
+               if (tsq.gt.zero.and.tsq.le.ulim) then
+                  tau=sqrt(tsq)
+                  w=exp(-tsq*t2*wint)*w1*w2*w3/tau
+                  f=w*formf(lat,l1,l2,l3)
+                  if (k.le.0.or.tsq.le.tsqx) then
+                     k=k+1
+                     if ((2*k).gt.nw) call error('coh',&
+                       'storage exceeded',' ')
+                     b(ifl+2*k-2)=tsq
+                     b(ifl+2*k-1)=f
+                  else
+                     i=0
+                     idone=0
+                     do while (i.lt.k.and.idone.eq.0)
+                        i=i+1
+                        if (tsq.ge.b(ifl+2*i-2).and.&
+                          tsq.lt.(1+eps)*b(ifl+2*i-2)) then
+                              b(ifl+2*i-1)=b(ifl+2*i-1)+f
+                           idone=1
+                        endif
+                     enddo
+                     if (idone.eq.0) then
+                        k=k+1
+                        if ((2*k).gt.nw) call error('coh',&
+                          'storage exceeded',' ')
+                        b(ifl+2*k-2)=tsq
+                        b(ifl+2*k-1)=f
+                     endif
+                  endif
+               endif
+               tsq=tausq(l1,-l2,l3,c1,c2,twopis)
+               if (tsq.gt.zero.and.tsq.le.ulim) then
+                  tau=sqrt(tsq)
+                  w=exp(-tsq*t2*wint)*w1*w2*w3/tau
+                  f=w*formf(lat,l1,-l2,l3)
+                  if (k.le.0.or.tsq.le.tsqx) then
+                     k=k+1
+                     if ((2*k).gt.nw) call error('coh',&
+                       'storage exceeded',' ')
+                     b(ifl+2*k-2)=tsq
+                     b(ifl+2*k-1)=f
+                  else
+                     i=0
+                     idone=0
+                     do while (i.lt.k.and.idone.eq.0)
+                        i=i+1
+                        if (tsq.ge.b(ifl+2*i-2).and.&
+                          tsq.lt.(1+eps)*b(ifl+2*i-2)) then
                            b(ifl+2*i-1)=b(ifl+2*i-1)+f
-                        idone=1
+                           idone=1
+                        endif
+                     enddo
+                     if (idone.eq.0) then
+                        k=k+1
+                        if ((2*k).gt.nw) call error('coh',&
+                          'storage exceeded',' ')
+                        b(ifl+2*k-2)=tsq
+                        b(ifl+2*k-1)=f
                      endif
-                  enddo
-                  if (idone.eq.0) then
-                     k=k+1
-                     if ((2*k).gt.nw) call error('coh',&
-                       'storage exceeded',' ')
-                     b(ifl+2*k-2)=tsq
-                     b(ifl+2*k-1)=f
                   endif
                endif
-            endif
-            tsq=tausq(l1,-l2,l3,c1,c2,twopis)
-            if (tsq.gt.zero.and.tsq.le.ulim) then
-               tau=sqrt(tsq)
-               w=exp(-tsq*t2*wint)*w1*w2*w3/tau
-               f=w*formf(lat,l1,-l2,l3)
-               if (k.le.0.or.tsq.le.tsqx) then
+            enddo
+         enddo
+      enddo
+   !--compute lattice factors for fcc lattices
+   ! used for lat = 4,5 - aluminum, lead
+   else if (lat.lt.6) then
+      phi=ulim/twopis
+      i1m=int(a*sqrt(phi))
+      i1m=15
+      k=0
+      do i1=-i1m,i1m
+         i2m=i1m
+         do i2=-i2m,i2m
+            i3m=i1m
+            do i3=-i3m,i3m
+               tsq=taufcc(i1,i2,i3,c1,twothd,twopis)
+               if (tsq.gt.zero.and.tsq.le.ulim) then
+                  tau=sqrt(tsq)
+                  w=exp(-tsq*t2*wint)/tau
+                  f=w*formf(lat,i1,i2,i3)
                   k=k+1
-                  if ((2*k).gt.nw) call error('coh',&
-                    'storage exceeded',' ')
+                  if ((2*k).gt.nw) call error('coh','storage exceeded',' ')
                   b(ifl+2*k-2)=tsq
                   b(ifl+2*k-1)=f
-               else
-                  i=0
-                  idone=0
-                  do while (i.lt.k.and.idone.eq.0)
-                     i=i+1
-                     if (tsq.ge.b(ifl+2*i-2).and.&
-                       tsq.lt.(1+eps)*b(ifl+2*i-2)) then
-                        b(ifl+2*i-1)=b(ifl+2*i-1)+f
-                        idone=1
-                     endif
-                  enddo
-                  if (idone.eq.0) then
-                     k=k+1
-                     if ((2*k).gt.nw) call error('coh',&
-                       'storage exceeded',' ')
-                     b(ifl+2*k-2)=tsq
-                     b(ifl+2*k-1)=f
-                  endif
                endif
-            endif
+            enddo
          enddo
       enddo
-   enddo
-   imax=k-1
-   go to 220
-
-   !--compute lattice factors for fcc lattices
-  210 continue
-   if (lat.gt.5) go to 215
-   phi=ulim/twopis
-   i1m=int(a*sqrt(phi))
-   i1m=15
-   k=0
-   do i1=-i1m,i1m
-      i2m=i1m
-      do i2=-i2m,i2m
-         i3m=i1m
-         do i3=-i3m,i3m
-            tsq=taufcc(i1,i2,i3,c1,twothd,twopis)
-            if (tsq.gt.zero.and.tsq.le.ulim) then
-               tau=sqrt(tsq)
-               w=exp(-tsq*t2*wint)/tau
-               f=w*formf(lat,i1,i2,i3)
-               k=k+1
-               if ((2*k).gt.nw) call error('coh','storage exceeded',' ')
-               b(ifl+2*k-2)=tsq
-               b(ifl+2*k-1)=f
-            endif
-         enddo
-      enddo
-   enddo
-   imax=k-1
-   go to 220
-
    !--compute lattice factors for bcc lattices
-  215 continue
-   phi=ulim/twopis
-   i1m=int(a*sqrt(phi))
-   i1m=15
-   k=0
-   do i1=-i1m,i1m
-      i2m=i1m
-      do i2=-i2m,i2m
-         i3m=i1m
-         do i3=-i3m,i3m
-            tsq=taubcc(i1,i2,i3,twopis)
-            if (tsq.gt.zero.and.tsq.le.ulim) then
-               tau=sqrt(tsq)
-               w=exp(-tsq*t2*wint)/tau
-               f=w*formf(lat,i1,i2,i3)
-               k=k+1
-               if ((2*k).gt.nw) call error('coh','storage exceeded',' ')
-               b(ifl+2*k-2)=tsq
-               b(ifl+2*k-1)=f
-            endif
+   ! used for lat = 6 - iron
+   else if (lat.lt.7) then
+      phi=ulim/twopis
+      i1m=int(a*sqrt(phi))
+      i1m=15
+      k=0
+      do i1=-i1m,i1m
+         i2m=i1m
+         do i2=-i2m,i2m
+            i3m=i1m
+            do i3=-i3m,i3m
+               tsq=taubcc(i1,i2,i3,twopis)
+               if (tsq.gt.zero.and.tsq.le.ulim) then
+                  tau=sqrt(tsq)
+                  w=exp(-tsq*t2*wint)/tau
+                  f=w*formf(lat,i1,i2,i3)
+                  k=k+1
+                  if ((2*k).gt.nw) call error('coh','storage exceeded',' ')
+                  b(ifl+2*k-2)=tsq
+                  b(ifl+2*k-1)=f
+               endif
+            enddo
          enddo
       enddo
-   enddo
+   else
+      call error('coh','illegal lat for lattice factors.',' ')
+   endif
    imax=k-1
 
    !--sort lattice factors
@@ -2889,14 +2920,23 @@ contains
    !       lat=6    bcc lattice (iron)
    !--------------------------------------------------------------------
    use physics ! provides pi
+   use util    ! provides error
    ! externals
    integer::lat,l1,l2,l3
    ! internals
    integer::i
    real(kr)::e1,e2,e3
+   real(kr)::phi1,phi2,phi3,phi4,phi5,phi6,phi7,phi8,phi9,phi10,phi11,phi12
+   real(kr)::fsi,fo
+   complex(kind=8)::imu
    real(kr),parameter::c1=7.54e0_kr
    real(kr),parameter::c2=4.24e0_kr
    real(kr),parameter::c3=11.31e0_kr
+   real(kr),parameter::r1=2.12_kr
+   real(kr),parameter::r2=4.232_kr
+   real(kr),parameter::sigmac_si=2.167_kr
+   real(kr),parameter::sigmac_sio2=10.631_kr
+   real(kr),parameter::sigmac_o=4.232_kr
 
    if (lat.eq.1) then
       ! graphite.
@@ -2923,6 +2963,31 @@ contains
       ! bcc lattices.
       e1=2*pi*(l1+l2+l3)
       formf=(1+cos(e1))**2+(sin(e1))**2
+   else if (lat.eq.7.or.lat.eq.8 ) then
+      ! Kemal Ramic, PhD dissertation, FROM EXPERIMENTS TO DFT SIMULATIONS:
+      ! COMPREHENSIVE OVERVIEW OF THERMAL SCATTERING FOR NEUTRON MODERATOR
+      ! MATERIALS
+      phi1=(0.4711000000)*l1
+      phi2=(0.5289000000)*l1+(0.5289000000)*l2+(0.6666666667)*l3
+      phi3=(0.4711000000)*l2+(0.6666666667)*l3
+      phi4=(0.5289000000)*l1+(0.5289000000)*l2+(0.3333333333)*l3
+      phi5=(0.4711000000)*l2
+      phi6=(0.4711000000)*l1+(0.3333333333)*l3
+      phi7=(0.4123000000)*l1+(0.2661000000)*l2+(0.1186000000)*l3
+      phi8=(0.7339000000)*l1+(0.1462000000)*l2+(0.7852666667)*l3
+      phi9=(0.8538000000)*l1+(0.5877000000)*l2+(0.4519333333)*l3
+      phi10=(0.2661000000)*l1+(0.4123000000)*l2+(0.8814000000)*l3
+      phi11=(0.1462000000)*l1+(0.7339000000)*l2+(0.2147333333)*l3
+      phi12=(0.5877000000)*l1+(0.8538000000)*l2+(0.5480666667)*l3
+      fsi=sqrt(sigmac_si/sigmac_sio2)
+      fo=sqrt(sigmac_o/sigmac_sio2)
+      imu=cmplx(0.,2.*pi,kind=8)
+      formf=abs(fsi*exp(imu*phi1) +fsi*exp(imu*phi2) +fsi*exp(imu*phi3) + &
+              & fsi*exp(imu*phi4) +fsi*exp(imu*phi5) +fsi*exp(imu*phi6) + &
+              &  fo*exp(imu*phi7) + fo*exp(imu*phi8) + fo*exp(imu*phi9) + &
+              &  fo*exp(imu*phi10)+ fo*exp(imu*phi11)+ fo*exp(imu*phi12))**2.0
+   else
+      call error('formf','illegal lat for lattice form factor.',' ')
    endif
    return
    end function formf
