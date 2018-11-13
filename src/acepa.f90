@@ -22,8 +22,8 @@ module acepa
    integer::eszg,jinc,jcoh,jflo,lhnm,jxsd(27)
 
    ! main container array for ace data
-   real(kr),dimension(:),allocatable::xss
    integer,parameter::nxss=999000
+   real(kr)::xss(nxss)
 
 contains
 
@@ -70,11 +70,8 @@ contains
    jxsd=0
 
    !--allocate scratch storage
-   nwscr=1000
+   nwscr=250000
    allocate(scr(nwscr))
-
-   !--allocate main container array
-   allocate(xss(nxss))
 
    !--assign input file
    call openz(nin,0)
@@ -103,13 +100,13 @@ contains
    call gety1(e,enext,idis,s,nin,scr)
    enext=emin
    do while (enext.lt.emax)
-      e=sigfig(enext,7,0)
+      e=sigfig(enext,9,0)
       if (idis.ne.0) then
-         e=sigfig(e,7,-1)
+         e=sigfig(e,9,-1)
          call gety1(e,enext,idis,s,nin,scr)
          l=l+1
          xss(l)=e
-         e=sigfig(e,7,+2)
+         e=sigfig(e,9,+2)
       endif
       call gety1(e,enext,idis,s,nin,scr)
       l=l+1
@@ -1001,11 +998,11 @@ contains
    call openz(ndir,1)
    if (mcnpx.eq.0) then
       write(ndir,&
-        '(a10,f12.6,'' filename route'',i2,'' 1 '',i8,2i6,1p,e10.3)')&
+        '(a10,f12.6,'' filename route'',i2,'' 1 '',i9,2i6,1p,e10.3)')&
         hz(1:10),aw0,itype,len2,lrec,nern,tz
    else
       write(ndir,&
-        '(a13,f12.6,'' filename route'',i2,'' 1 '',i8,2i6,1p,e10.3)')&
+        '(a13,f12.6,'' filename route'',i2,'' 1 '',i9,2i6,1p,e10.3)')&
         hz(1:13),aw0,itype,len2,lrec,nern,tz
    endif
    call closz(ndir)
