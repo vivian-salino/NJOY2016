@@ -2,15 +2,14 @@
 name: Continuous Integration
 
 # This workflow is triggered on pushes to the repository.
-on: [push]
+on: [push
 
 jobs:
   build:
-
-    runs-on: ubunto-latest
-
+    name: Testing
+    runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@master
+    - name: actions/checkout@master
     - name: mkdir bin
       run: mkdir bin; cd bin
     - name: cmake
