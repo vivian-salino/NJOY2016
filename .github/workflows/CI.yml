@@ -12,6 +12,8 @@ jobs:
     - uses: actions/checkout@master
     - name: pwd
       run: pwd
+    - name: ls
+      run: ls -lha
     - name: mkdir bin
       run: mkdir bin; cd bin
     - name: cmake
