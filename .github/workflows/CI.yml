@@ -16,7 +16,7 @@ jobs:
       run: ls -lha
     - name: mkdir bin
       run: |
-      mkdir bin; 
+      mkdir bin
       cd bin
       pwd
       ls
