@@ -11,10 +11,7 @@ jobs:
     steps:
     - uses: actions/checkout@master
     - name: mkdir bin
-      run: |
-      pwd;
-      mkdir bin;
-      cd bin
+      run: mkdir bin; cd bin
     - name: cmake
       run: cmake ..
     - name: make
