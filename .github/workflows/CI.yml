@@ -8,6 +8,7 @@ jobs:
   build:
     name: Testing
     runs-on: ubunto-latest
+
     steps:
     - uses: actions/checkout@master
     - name: mkdir bin
