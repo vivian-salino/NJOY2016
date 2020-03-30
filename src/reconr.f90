@@ -257,7 +257,6 @@ contains
             call error('reconr','illegal nsub for reconr',' ')
          endif
          call hdatio(nin,0,0,scr,nb,nw)
-         if (iverf.ge.6) tempi=scr(1)
          do i=1,17
             z(i)=scr(6+i)
          enddo

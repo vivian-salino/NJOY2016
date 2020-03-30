@@ -1382,7 +1382,7 @@ contains
          nls=n1h
          isr=n2h
          if (lrf.ne.7) then
-            if (isr.ne.0) then
+            if (isr.eq.1) then
                if (isr.eq.1.and.lrf.le.2) then
                   call contio(nin,nout,nscr,a,nb,nw)
                else if (isr.eq.1.and.lrf.eq.3) then
