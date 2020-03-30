@@ -43,7 +43,7 @@ class PyNjoy:
   def pendf(self, eaf=0):
     print " --- make pendf for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
@@ -220,7 +220,7 @@ class PyNjoy:
   def gendf(self, eaf=0):
     print " --- make gendf for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     os.chdir(self.evaluationName)
@@ -375,7 +375,7 @@ class PyNjoy:
   def gamma(self):
     print " --- make gamma gendf for " + self.hmatgg + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
@@ -418,7 +418,7 @@ class PyNjoy:
   #
   def draglib(self, fp=0):
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     evaluationNameBase =  os.path.basename(self.evaluationName)
@@ -594,7 +594,7 @@ class PyNjoy:
   def matxs(self):
     print " --- make matxs for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     os.chdir(self.evaluationName)
     listGro = [ 0, 239, 30, 27, 50, 68, 100, 35, 69, 187, 70, 620, 80, 100,
     640, 174, 175, 172, 33, 1968, 315, 172, 175, 281, 349, 89 ]
@@ -656,7 +656,7 @@ class PyNjoy:
   def wims(self):
     print " --- make wimslib for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     os.chdir(self.evaluationName)
     nbTmp = len(self.temperatures)
     matsab_inc = 221
@@ -801,7 +801,7 @@ class PyNjoy:
 #
   def burnup(self):
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<tempFile"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<tempFile"
     evaluationNameBase =  os.path.basename(self.evaluationName)
     if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
     os.chdir(self.evaluationName)
@@ -931,7 +931,7 @@ class PyNjoy:
 #
   def acer(self):
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     textTmp=""
