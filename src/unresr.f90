@@ -595,7 +595,7 @@ contains
    if (enow.lt.eh) then
       write(strng,&
         '(''between'',1p,e12.4,'' and'',1p,e12.4,'' eV'')') enow, eh
-      call error('rdunf2','energy dependent data undefined',strng) 
+      call error('rdunf2','energy dependent data undefined',strng)
    endif
    ! loop over l states
    do l=1,nls
@@ -683,7 +683,7 @@ contains
          if (enow.lt.eh) then
             write(strng,&
               '(''between'',1p,e12.4,'' and'',1p,e12.4,'' eV'')') enow, eh
-            call error('rdunf2','energy dependent data undefined',strng) 
+            call error('rdunf2','energy dependent data undefined',strng)
          endif
       enddo
    enddo
@@ -1185,6 +1185,12 @@ contains
       sigu(3,is)=sigf(1,is,1)+sigbkg(3)
       sigu(4,is)=sigf(1,is,2)+sigbkg(4)
       sigu(5,is)=sigf(1,is,5)
+      if (sigu(3,is).lt.0.0) sigu(3,is)=0.0
+      if (sigu(5,is).lt.0.0) sigu(5,is)=0.0
+      if (sigu(4,is).lt.0.0) then
+         sigu(4,is)=0.0
+         sigu(2,is)=sigu(1,is)
+      endif
    enddo
    if (allocated(sigf)) then
       deallocate(sigf)

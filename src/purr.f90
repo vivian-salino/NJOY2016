@@ -2482,6 +2482,12 @@ contains
          sigb(3,i,itemp)=bval(3,i,itemp)/bval(6,i,itemp)
          sigb(4,i,itemp)=bval(4,i,itemp)/bval(6,i,itemp)
          sigb(5,i,itemp)=bval(5,i,itemp)/bval(7,i,itemp)
+         if (sigb(3,i,itemp).lt.0.0) sigb(3,i,itemp)=0.0
+         if (sigb(5,i,itemp).lt.0.0) sigb(5,i,itemp)=0.0
+         if (sigb(4,i,itemp).lt.0.0) then
+            sigb(4,i,itemp)=0.0
+            sigb(2,i,itemp)=sigb(1,i,itemp)
+         endif
       enddo
    enddo
    if (iprint.gt.0) then
