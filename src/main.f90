@@ -75,6 +75,9 @@ program njoy
 !
 ! leapr....generate S(alpha,beta) for thermal moderators.
 !
+! dragr....convert multigroup data into libraries for the lattice
+!          code Dragon.
+!
 ! gaspr....add gas production (MT203-207) to PENDF tape.
 !
 ! Each processing module is implemented as a Fortran-90 module with
@@ -138,6 +141,7 @@ program njoy
    use purm    ! provides purr
    use leapm   ! provides leapr
    use gaspm   ! provides gaspr
+   use dragm   ! provides dragr
 
    implicit none
    character(6)::module
@@ -260,6 +264,9 @@ program njoy
 
       case('gaspr')  ! add gas production (mt203-207) to pendf
          call gaspr
+
+      case('dragr')  ! produce libraries for Dragon
+         call dragr
 
       case ('--')    ! comment card; nothing to do
 
