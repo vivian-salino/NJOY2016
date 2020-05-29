@@ -1873,7 +1873,7 @@ contains
    use endf   ! provides endf routines and variables
    use util   ! provides timer,openz,repoz,error
    integer :: maxa,maxiso,nreac,nfath,maxch
-   parameter(maxa=10000,maxiso=4000,nreac=13,nfath=40,maxch=800)
+   parameter(maxa=10000,maxiso=6500,nreac=13,nfath=800,maxch=6000)
    integer nfp,ndcy,izae,nbch,nbfiss,nbfp,nbfpch,nbiso,nw
    real(kr) en(nfath,maxch),br(nfath,maxch)
    integer mylist(maxiso,3)
@@ -2394,7 +2394,7 @@ contains
    use mainio ! provides nsysi,contio,nsyso,nsyse
    use util   ! provides error
    integer :: maxrea,nstate,maxit,maxfat
-   parameter (maxrea=13,nstate=40,maxit=20,maxfat=25)
+   parameter (maxrea=13,nstate=40,maxit=20,maxfat=350)
    integer maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,nfp,ndcy,nbch,nbfpch,ireac, &
    & iter,iso,isoo,i,j,ia,ja,ibfp,ida,ifa,ifath,ifi,ifp,ifps,iii,im,ind,ipgar, &
    & iz,j0,jfath,jfp,jnd,jnd1,jnd2,jso,jz,k,knd,kreac,kso,kt,nbheav,nlup,nn, &

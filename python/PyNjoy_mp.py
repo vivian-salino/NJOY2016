@@ -46,11 +46,12 @@ class PyNjoy_mp:
     # concat : flag for parallel computing: 0 = sequential / 1 = multi-thread
     self.unform = 0
     # unform : flag for library format: 0 = formatted / 1 = unformatted
+    self.chainFileName = None
 
   def pendf(self, eaf=0):
     print " --- make pendf for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
 
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
@@ -229,7 +230,7 @@ class PyNjoy_mp:
   def gendf(self, eaf=0):
     print " --- make gendf for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     os.chdir(self.evaluationName + '/' + self.hmat)
@@ -384,7 +385,7 @@ class PyNjoy_mp:
   def gamma(self):
     print " --- make gamma gendf for " + self.hmatgg + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
     if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
@@ -429,7 +430,7 @@ class PyNjoy_mp:
   def draglib(self, fp=0):
     print " --- make draglib for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
 #    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
@@ -617,7 +618,7 @@ class PyNjoy_mp:
   def draglibcat(self):
     print " --- concatenate draglib for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     evaluationNameBase =  os.path.basename(self.evaluationName)
     os.chdir(self.evaluationName)
     if os.path.isfile("drag"): os.remove("drag")
@@ -666,7 +667,7 @@ class PyNjoy_mp:
   def draglibconv(self):
     print " --- convert draglib ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if self.hmat == None:
       evaluationNameBase =  os.path.basename(self.evaluationName)
       os.chdir(self.evaluationName)
@@ -737,7 +738,7 @@ class PyNjoy_mp:
   def matxs(self):
     print " --- make matxs for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     os.chdir(self.evaluationName + '/' + self.hmat)
     listGro = [ 0, 239, 30, 27, 50, 68, 100, 35, 69, 187, 70, 620, 80, 100,
     640, 174, 175, 172, 33, 1968, 315, 172, 175, 281, 349, 89 ]
@@ -799,7 +800,7 @@ class PyNjoy_mp:
   def wims(self):
     print " --- make wimslib for " + self.hmat + " ---"
     myCwd = os.getcwd()
-    myNjoy = self.execDir + "/xnjoy<file_data"
+    myNjoy = self.execDir + "/njoy<file_data"
     os.chdir(self.evaluationName + '/' + self.hmat)
     nbTmp = len(self.temperatures)
     matsab_inc = 221
@@ -945,7 +946,7 @@ class PyNjoy_mp:
   def burnup(self):
     print " --- depletion chain - draglib ---"
     myCwd = os.getcwd()
-    myNjoy = myCwd + '/' + self.execDir + "/xnjoy<tempFile"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<tempFile"
     evaluationNameBase =  os.path.basename(self.evaluationName)
     os.chdir(self.evaluationName)
     if os.path.isfile("drag"): os.remove("drag")
@@ -1083,122 +1084,112 @@ class PyNjoy_mp:
 #
   def acer(self):
     myCwd = os.getcwd()
-    myNjoy = self.execDir + "/xnjoy<file_data"
+    myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    textTmp=""
-    for tmp in self.tempace:
-      textTmp = textTmp + " " + "%E"%tmp
+    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName + '/' + self.hmat): os.mkdir(self.evaluationName + '/' + self.hmat)
     os.chdir(self.evaluationName + '/' + self.hmat)
-    self.__dict__.update({"textTmp": textTmp})
-    text_data = """
-    moder
-    20 -21
-    moder
-    29 -25
-    acer
-    -21 -25 0 38 39
-    1 0 1 %(suff)f/
-    'pendf tape from %(evaluationName)s'/
-    %(mat)d  %(textTmp)s /
-    1 1/
-    0.001/
-    acer / Check ACE files
-    0 38 0 40 41
-    7 1 1 -1/
-    /
-    """%self.__dict__
-    if self.scatteringLaw:
-      matsab_inc = 221
-      matsab_coh = 0
-      nbAtoms = 1
-      elasOpt = 0
-      if self.scatteringMat == 1:    # H1_H20
-        nbAtoms = 2
-        matsab_inc = 222               # h2o
-      elif self.scatteringMat == 7:  # H_ZRH
-        nbAtoms = 2
-        elasOpt = 1
-        matsab_inc = 225               # zrhyd
-        matsab_coh = 226               # zrhyd$
-      elif self.scatteringMat == 11: # H2_D20
-        nbAtoms = 2
-        matsab_inc = 228               # d2o
-      elif self.scatteringMat == 26: # Be
-        elasOpt = 1
-        matsab_inc = 231               # be
-        matsab_coh = 232               # be$
-      elif self.scatteringMat == 27: # BeO
-        nbAtoms = 2
-        elasOpt = 1
-        matsab_inc = 233               # beo
-        matsab_inc = 234               # beo$
-      elif self.scatteringMat == 31: # C_GRAPH
-        elasOpt = 1
-        matsab_inc = 229               # graph
-        matsab_inc = 230               # graph$
-      elif self.scatteringMat == 37: # H_CH2
-        nbAtoms = 2
-        matsab_inc = 223               # poly
-      elif self.scatteringMat == 40: # H_C6H6 (benzine)
-        nbAtoms = 2
-        matsab_inc = 227               # benz
-      elif self.scatteringMat == 58: # Zr_ZRH
-        nbAtoms = 2
-        elasOpt = 1
-        matsab_inc = 235               # zrhyd
-        matsab_inc = 236               # zrhyd$
-      text_data = text_data + """
-    acer
-    -21 -25 0 48 49
-    2 0 1 %(suff)f/
-    'pendf tape from %(evaluationName)s'/
-    %(mat)d  %(textTmp)s %(scatName)s/
-    %(za)d 0 0 /
-    %(matsab_inc)d 16 %(matsab_coh)d %(elasOpt)d %(nbAtoms)d 4.0 0 0 /
-    acer / Check ACE files
-    0 48 0 50 51
-    7 1 1 -1/
-    /
-    stop
-    """%self.__dict__
-    else:
-      text_data = text_data + """
-    stop
-    """
-    file_data = open("file_data",'w')
-    file_data.write(text_data)
-    file_data.close()
     os.system("ln -s " + self.evaluationFile + " tape20")
     os.system("ln -s pendf" + self.hmat + " tape29")
-    os.system(myNjoy)
-    if os.path.isfile("tape48"):
-     inp=open("tape48","r")
-     outp=open("acecandu",'a')
-     line = inp.readlines()
-     outp.writelines(line)
-     inp1=open("tape49","r")
-     outp1=open("acexsdir",'a')
-     line = inp1.readlines()
-     outp1.writelines(line)
-    if os.path.isfile("tape38"):
-     inp=open("tape38","r")
-     outp=open("acecandu",'a')
-     line = inp.readlines()
-     outp.writelines(line)
-     inp1=open("tape39","r")
-     outp1=open("acexsdir",'a')
-     line = inp1.readlines()
-     outp1.writelines(line)
-     print " ace file for" + self.hmat + "created"
-     if not os.path.isdir(self.dirName): os.mkdir(self.dirName)
-     os.system("mv tape38 " + '   ' + self.dirName + "/"+self.hmat +'_'+str(int(self.tempace[0]))+".ace")
-    else:
-     raise PyNjoyError("ace file for " + self.hmat + " not created")
-#
+    for itmp, tmp in enumerate(self.temperatures):
+      textTmp = "%E"%tmp
+      self.__dict__.update({"textSuff": "%f"%self.suff[itmp], \
+                            "textTmp": textTmp})
+      text_data = """
+      moder
+      20 -21
+      moder
+      29 -25
+      acer
+      -21 -25 0 38 39
+      1 0 1 %(textSuff)s/
+      'pendf tape from %(evaluationName)s'/
+      %(mat)d  %(textTmp)s /
+      1 1/
+      0.001/
+      acer / Check ACE files
+      0 38 0 40 41
+      7 1 1 -1/
+      /
+      """%self.__dict__
+      if self.scatteringLaw:
+        matsab_inc = 221
+        matsab_coh = 0
+        nbAtoms = 1
+        elasOpt = 0
+        if self.scatteringMat == 1:    # H1_H20
+          nbAtoms = 2
+          matsab_inc = 222               # h2o
+        elif self.scatteringMat == 7:  # H_ZRH
+          nbAtoms = 2
+          elasOpt = 1
+          matsab_inc = 225               # zrhyd
+          matsab_coh = 226               # zrhyd$
+        elif self.scatteringMat == 11: # H2_D20
+          nbAtoms = 2
+          matsab_inc = 228               # d2o
+        elif self.scatteringMat == 26: # Be
+          elasOpt = 1
+          matsab_inc = 231               # be
+          matsab_coh = 232               # be$
+        elif self.scatteringMat == 27: # BeO
+          nbAtoms = 2
+          elasOpt = 1
+          matsab_inc = 233               # beo
+          matsab_inc = 234               # beo$
+        elif self.scatteringMat == 31: # C_GRAPH
+          elasOpt = 1
+          matsab_inc = 229               # graph
+          matsab_inc = 230               # graph$
+        elif self.scatteringMat == 37: # H_CH2
+          nbAtoms = 2
+          matsab_inc = 223               # poly
+        elif self.scatteringMat == 40: # H_C6H6 (benzine)
+          nbAtoms = 2
+          matsab_inc = 227               # benz
+        elif self.scatteringMat == 58: # Zr_ZRH
+          nbAtoms = 2
+          elasOpt = 1
+          matsab_inc = 235               # zrhyd
+          matsab_inc = 236               # zrhyd$
+        text_data = text_data + """
+      acer
+      -21 -25 0 48 49
+      2 0 1 %(textSuff)s/
+      'pendf tape from %(evaluationName)s'/
+      %(mat)d  %(textTmp)s %(scatName)s/
+      %(za)d 0 0 /
+      %(matsab_inc)d 16 %(matsab_coh)d %(elasOpt)d %(nbAtoms)d 4.0 0 0 /
+      acer / Check ACE files
+      0 48 0 50 51
+      7 1 1 -1/
+      /
+      stop
+      """%self.__dict__
+      else:
+        text_data = text_data + """
+      stop
+      """
+      file_data = open("file_data",'w')
+      file_data.write(text_data)
+      file_data.close()
+      os.system(myNjoy)
+      if os.path.isfile("tape48"):
+       os.system("mv tape48 " + str(self.za) + "_" + "%.0f"%tmp + "K_tsl.ace" )
+       os.system("mv tape49 " + str(self.za) + "_" + "%.0f"%tmp + "K_tsl.xsdir" )
+      if os.path.isfile("tape38"):
+       os.system("mv tape38 " + str(self.za) + "_" + "%.0f"%tmp + "K.ace" )
+       os.system("mv tape39 " + str(self.za) + "_" + "%.0f"%tmp + "K.xsdir" )
+       print "ACE file for " + self.hmat + " created"
+      else:
+       raise PyNjoyError("ACE or TSL file for " + self.hmat + " not created")
+  #
+      os.system("mv file_data file_data_ace" + self.hmat + "_" + "%.0f"%tmp + "K")
+      os.system("mv output out_ace_" + self.hmat + "_" + "%.0f"%tmp + "K")
+      os.system("chmod 644 out_ace_" + self.hmat + "_" + "%.0f"%tmp + "K")
     for fileName in os.listdir(os.getcwd()):
       if fileName[:4] == 'tape': os.remove(fileName)
-    os.remove("file_data")
     os.chdir(myCwd)
 
 # new endfb class inherits from PyNjoy class
@@ -1264,6 +1255,16 @@ class VectPyNjoy(list):
     myCommand = "tail -n 1 " + self[1].evaluationName + "/" + self[1].hmat + "/draglib" + self[1].hmat + " >> draglib" + os.path.basename(self[1].evaluationName)
     os.system(myCommand)
     os.chdir(myCwd)
+  def acer(self):
+    pool = mp.Pool(processes=self.ncpu)
+    results = []
+    results = [pool.apply_async(njoy_job_acer, args=(this_job,)) for this_job in self]
+    output = [p.get() for p in results]
+    pool.close()
+    pool.join()  # block at this line until all processes are done
+    for idx, code in enumerate(output):
+      if code != 0:
+        print('njoy run for ' + njoy_jobs[idx].hmat + ' reported an error!')
 
 def njoy_job_pendf(inst):
   inst.pendf(inst.eaf)
