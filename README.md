@@ -24,7 +24,7 @@ cd tests
 make test
 ```
 
-All tests should pass except tests 1, 11, 25 and 32 (see [commit 141a8a0](https://github.com/IRSN/PyNjoy2016/commit/141a8a095877f7cb4ff3b6d3c9a42aa07019e270 for more details)). Draglib and eventually ACE files can then be produced with:
+All tests should pass except tests 1, 11, 25 and 32 (see [commit 141a8a0](https://github.com/IRSN/PyNjoy2016/commit/141a8a095877f7cb4ff3b6d3c9a42aa07019e270) for more details). Draglib and eventually ACE files can then be produced with:
 ```
 cd ../python
 python jeff3p1p1.py
