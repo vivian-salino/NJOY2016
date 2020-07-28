@@ -10,7 +10,7 @@ The main difference with NJOY2016 is the inclusion of the DRAGR module. It is us
 This project is not intended to last, but to merge into NJOY2016 main branch. We believe it's the right thing to do because - as stated in the introduction of [NJOY manual](https://github.com/njoy/NJOY2016-manual/raw/master/njoy16.pdf) - the mission of NJOY is
 "to take the basic data from the nuclear data library and convert it into the forms needed for applications."
 
-Only Python automation scripts are vowed to persist as a separate (user) project. Also, it is understandable that some small changes cannot be merged into the main branch, such as the few lines useful to process famous but incorrect nuclear data files (in particular in moder, reconr, unresr and purr).
+Only Python automation scripts are vowed to persist as a separate (user) project. Also, it is understandable that some small changes cannot be merged into the main branch, such as the few (16) lines useful to process famous but incorrect nuclear data files (in moder, reconr, unresr and purr).
 
 ## Obtaining, compiling and using PyNjoy2016
 
@@ -24,17 +24,17 @@ cd tests
 make test
 ```
 
-All tests should pass except tests 1, 11, 25 and 32 (see https://github.com/IRSN/PyNjoy2016/commit/141a8a095877f7cb4ff3b6d3c9a42aa07019e270 for more details). Draglib and eventually ACE files can then be produced with:
+All tests should pass except tests 1, 11, 25 and 32 (see [commit 141a8a0](https://github.com/IRSN/PyNjoy2016/commit/141a8a095877f7cb4ff3b6d3c9a42aa07019e270 for more details)). Draglib and eventually ACE files can then be produced with:
 ```
 cd ../python
 python jeff3p1p1.py
 ```
 
-You will probably need to modify the following variables in this last python script:
+You will probably need to modify the following variables in this Python script:
 * `evaluationDir`, pointing toward your directory containing the ENDF files,
 * `evaluationName`, indicating your output directory.
 
-Other nuclear data evaluations and other energy grids can be processed using the Python scripts that can be found in the fourth table on [this page](https://www.polymtl.ca/merlin/libraries.htm).
+Other nuclear data evaluations and other energy meshes can be processed using the Python scripts that can be found in the fourth table on [this page](https://www.polymtl.ca/merlin/libraries.htm).
 
 ## Documentation
 The documentation for NJOY2016 is found in the [NJOY2016-manual](https://github.com/njoy/NJOY2016-manual) repository. There, you can find a [pre-compiled PDF](https://github.com/njoy/NJOY2016-manual/raw/master/njoy16.pdf) of the NJOY2016 manual.

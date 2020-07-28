@@ -1,9 +1,6 @@
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/input"
                "${CMAKE_CURRENT_BINARY_DIR}/input" COPYONLY )
 
-configure_file("${CMAKE_CURRENT_SOURCE_DIR}/referenceOutput"
-               "${CMAKE_CURRENT_BINARY_DIR}/referenceOutput" COPYONLY )
-
 configure_file("${CMAKE_CURRENT_SOURCE_DIR}/referenceTape29"
                "${CMAKE_CURRENT_BINARY_DIR}/referenceTape29" COPYONLY )
 
