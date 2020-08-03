@@ -190,9 +190,11 @@ contains
        if(iutype/=-itapet(iboucl)) then
          kdropn=-2
          return
-       else if((iutype==4).and.(lrda/=ilenda(iboucl))) then
-         kdropn=-11
-         return
+       else if(iutype==4) then
+         if(lrda/=ilenda(iboucl)) then
+           kdropn=-11
+           return
+         endif
        endif
        go to 121
      endif
