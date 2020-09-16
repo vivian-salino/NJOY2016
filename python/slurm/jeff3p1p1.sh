@@ -4,4 +4,4 @@
 #SBATCH --mem-per-cpu=10G
 
 cd ..
-srun python jeff3p1p1.py
+srun python2 jeff3p1p1.py

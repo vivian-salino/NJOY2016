@@ -4,4 +4,4 @@
 #SBATCH --mem-per-cpu=10G
 
 cd ..
-srun python TENDL_mp.py 20 U238
+srun python2 TENDL_mp.py 20 U238
