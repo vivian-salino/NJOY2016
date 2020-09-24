@@ -1,8 +1,9 @@
 #!/usr/local/bin/python
 from PyNjoy import *
 from os import uname
+import getpass
 jeff3p1 = PyNjoy()
-jeff3p1.evaluationName = os.path.expanduser('~') + "/work/Njoy/Jeff3.1.1_PyNjoy2016"
+jeff3p1.evaluationName = "/SCRATCH/ORION/" + getpass.getuser() + "/Njoy/JEFF-3.1.1/"
 jeff3p1.execDir = ".."
 jeff3p1.nstr = 22
 jeff3p1.iwt = 4

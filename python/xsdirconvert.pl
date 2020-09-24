@@ -8,6 +8,7 @@
 # http://montecarlo.vtt.fi/links.htm
 # or more directly from
 # http://montecarlo.vtt.fi/download/xsdirconvert.pl
+# and slightly modified for TMC needs
 # V. Salino
 
 @elem = (
@@ -228,12 +229,16 @@ while ($tmp = <INPUT>)
 
     $T = $erg*1.1604518025685E+10;
 
-    # Split zaid to ZA and id:
-
-    @params = split('\.', $zaid);
-
-    $ZA = @params[0];
-    $id = @params[1];
+    # Split zaid to ZA and suffix (suffix may begin with anything, including for example "m" for metastable):
+    if ( $zaid =~  m{^(\d+)(\D.*)} )
+    {
+        ($ZA, $suffix) = ($1, $2);
+    }
+    # S(a,b) ace files
+    elsif ( $zaid =~  m{^([^\.]+)\.(.*)} )
+    {
+        ($ZA, $suffix) = ($1, $2);
+    }
 
     # Separate Z and A:
 
@@ -270,19 +275,19 @@ while ($tmp = <INPUT>)
 
     # Set type:
 
-    if ($id =~ m/c/)
+    if ($suffix =~ m/c/)
     {
 	$type = 1;
     }
-    elsif ($id =~ m/y/)
+    elsif ($suffix =~ m/y/)
     {
 	$type = 2;
     }
-    elsif ($id =~ m/t/)
+    elsif ($suffix =~ m/t/)
     {
 	$type = 3;
     }
-    elsif ($id =~ m/p/)
+    elsif ($suffix =~ m/p/)
     {
 	$type = 5;
     }
@@ -386,15 +391,15 @@ while ($tmp = <INPUT>)
 
 	if ($A == 0)
 	{
-	    $alias = sprintf("%s-nat.%s", @elem[$Z], $id);
+	    $alias = sprintf("%snat%s", @elem[$Z], $suffix);
 	}
 	elsif ($I == 0)
 	{
-	    $alias = sprintf("%s-%d.%s", @elem[$Z], $A, $id);
+	    $alias = sprintf("%s%d%s", @elem[$Z], $A, $suffix);
 	}
 	else
 	{
-	    $alias = sprintf("%s-%dm.%s", @elem[$Z], $A, $id);
+	    $alias = sprintf("%s%dm%s", @elem[$Z], $A, $suffix);
 	}
 
 	# Print data:
