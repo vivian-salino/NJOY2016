@@ -38,6 +38,34 @@ elif iso == 'Zr94' and nrand > 200:
   nrand = 200
 elif iso == 'Zr96' and nrand > 250:
   nrand = 200
+elif iso == 'Ag107' and nrand > 100:
+  nrand = 100
+elif iso == 'Ag109' and nrand > 60:
+  nrand = 60
+elif iso == 'In115' and nrand > 100:
+  nrand = 100
+elif iso == 'Cd106' and nrand > 20:
+  nrand = 20
+elif iso == 'Cd108' and nrand > 20:
+  nrand = 20
+elif iso == 'Cd110' and nrand > 40:
+  nrand = 40
+elif iso == 'Cd111' and nrand > 40:
+  nrand = 40
+elif iso == 'Cd112' and nrand > 60:
+  nrand = 60
+elif iso == 'Cd113' and nrand > 40:
+  nrand = 40
+elif iso == 'Cd114' and nrand > 60:
+  nrand = 60
+elif iso == 'Cd116' and nrand > 20:
+  nrand = 20
+elif iso == 'Cr52' and nrand > 10:
+  nrand = 10
+elif iso == 'Fe56' and nrand > 10:
+  nrand = 10
+elif iso == 'Fe54' and nrand > 180:
+  nrand = 180
 
 job_ref = lib_base(evalName, execDir, evalDir, scatLawDir)
 job_ref.nstr = 22
@@ -184,6 +212,173 @@ print('Number of jobs from Zr isotopes : '+ str(len(njoy_jobs) - c1))
 tim1 = time.time()
 print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
 tim = tim1
+
+#############################################################################
+#  AIC
+#############################################################################
+c1 = len(njoy_jobs)
+job_ref_fp = copy.deepcopy(job_ref)
+job_ref_fp.legendre = 0
+job_ref_fp.fp = 1
+job_ref_fp.ss = (2.76792, 1.66156e4)
+
+for irand in range(0,nrand):
+
+  if iso == 'Ag107':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Ag107" + "_" + str(irand).zfill(3)
+    this_job.mat = 4725
+    this_job.evaluationFile = this_job.evaluationDir + "n-Ag107-rand-" + str(irand).zfill(4)
+    this_job.potential = 5.4739
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 47107
+    njoy_jobs.append(this_job)
+
+  if iso == 'Ag109':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Ag109" + "_" + str(irand).zfill(3)
+    this_job.mat = 4731
+    this_job.evaluationFile = this_job.evaluationDir + "n-Ag109-rand-" + str(irand).zfill(4)
+    this_job.potential = 5.3316
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 47109
+    njoy_jobs.append(this_job)
+
+  if iso == 'In115':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "In115" + "_" + str(irand).zfill(3)
+    this_job.mat = 4931
+    this_job.evaluationFile = this_job.evaluationDir + "n-In115-rand-" + str(irand).zfill(4)
+    this_job.potential = 5.0695
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 49115
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd106':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd106" + "_" + str(irand).zfill(3)
+    this_job.mat = 4825
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd106-rand-" + str(irand).zfill(4)
+    this_job.za = 48106
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd108':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd108" + "_" + str(irand).zfill(3)
+    this_job.mat = 4831
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd108-rand-" + str(irand).zfill(4)
+    this_job.za = 48108
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd110':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd110" + "_" + str(irand).zfill(3)
+    this_job.mat = 4837
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd110-rand-" + str(irand).zfill(4)
+    this_job.potential = 5.1762
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 48110
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd111':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd111" + "_" + str(irand).zfill(3)
+    this_job.mat = 4840
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd111-rand-" + str(irand).zfill(4)
+    this_job.za = 48111
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd112':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd112" + "_" + str(irand).zfill(3)
+    this_job.mat = 4843
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd112-rand-" + str(irand).zfill(4)
+    this_job.za = 48112
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd113':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd113" + "_" + str(irand).zfill(3)
+    this_job.mat = 4846
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd113-rand-" + str(irand).zfill(4)
+    this_job.za = 48113
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd114':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd114" + "_" + str(irand).zfill(3)
+    this_job.mat = 4849
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd114-rand-" + str(irand).zfill(4)
+    this_job.za = 48114
+    njoy_jobs.append(this_job)
+
+  if iso == 'Cd116':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cd116" + "_" + str(irand).zfill(3)
+    this_job.mat = 4855
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cd116-rand-" + str(irand).zfill(4)
+    this_job.za = 48116
+    njoy_jobs.append(this_job)
+
+print('Number of jobs from AIC isotopes : '+ str(len(njoy_jobs) - c1))
+
+tim1 = time.time()
+print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
+tim = tim1
+
+#############################################################################
+#  Stainless steel
+#############################################################################
+c1 = len(njoy_jobs)
+job_ref_fp = copy.deepcopy(job_ref)
+job_ref_fp.legendre = 0
+job_ref_fp.fp = 1
+job_ref_fp.ss = (2.76792, 1.66156e4)
+
+for irand in range(0,nrand):
+
+  if iso == 'Cr52':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Cr52" + "_" + str(irand).zfill(3)
+    this_job.mat = 2431
+    this_job.evaluationFile = this_job.evaluationDir + "n-Cr052-rand-" + str(irand).zfill(4)
+    this_job.potential = 4.1677
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 24052
+    njoy_jobs.append(this_job)
+
+  if iso == 'Fe54':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Fe54" + "_" + str(irand).zfill(3)
+    this_job.mat = 2625
+    this_job.evaluationFile = this_job.evaluationDir + "n-Fe054-rand-" + str(irand).zfill(4)
+    this_job.za = 26054
+    njoy_jobs.append(this_job)
+
+  if iso == 'Fe56':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Fe56" + "_" + str(irand).zfill(3)
+    this_job.mat = 2631
+    this_job.evaluationFile = this_job.evaluationDir + "n-Fe056-rand-" + str(irand).zfill(4)
+    this_job.potential = 3.7243
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.za = 26056
+    njoy_jobs.append(this_job)
+
+  if iso == 'Ni58':
+    this_job = copy.deepcopy(job_ref_fp)
+    this_job.hmat = "Ni58" + "_" + str(irand).zfill(3)
+    this_job.mat = 2825
+    this_job.evaluationFile = this_job.evaluationDir + "n-Ni058-rand-" + str(irand).zfill(4)
+    this_job.za = 28058
+    njoy_jobs.append(this_job)
+
+print('Number of jobs from SS isotopes : '+ str(len(njoy_jobs) - c1))
+
+tim1 = time.time()
+print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
+tim = tim1
+
 
 ##############################################################################
 ##  check file locations

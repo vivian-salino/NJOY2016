@@ -56,7 +56,7 @@ contains
    ! card 3 material data (one card per material)
    !   matno     integer material identifier
    !             (endf/b mat number)
-   !   hmat      hollerith material identifier (up to 8 characters
+   !   hmat      hollerith material identifier (up to 12 characters
    !             each). By default, an ascii identifier is
    !             constructed.
    !   nbesp     zero (no energy-dependent fission spectra) or
@@ -119,7 +119,7 @@ contains
    real(kr)::time,eres0,eres1,eaut0,eaut1,deli
    integer :: maxa,maxgr,maxesp
    parameter (maxa=2000,maxgr=400,maxesp=4)
-   character text72*72,text12*12,text8*8
+   character text72*72,text12*12
    integer ngen,matno,ng
    integer iesp(maxesp+1)
    character(len=4) labell(18)
@@ -216,26 +216,26 @@ contains
    if(ngen.eq.0) go to 20
    do
      matno=0
-     text8=' '
-     read(nsysi,*) matno,text8,nbesp
+     text12=' '
+     read(nsysi,*) matno,text12,nbesp
      if(nbesp.gt.maxesp) call error('dragr','maxesp overflow',' ')
      if(matno.eq.0) then
        go to 10
-     else if(text8.eq.' ') then
+     else if(text12.eq.' ') then
        ! automatic composition of the ascii material name.
        if(nendf.eq.0) call error('dragr','endf unit not provided',' ')
        call findf(matno,1,451,nendf)
        call contio(nendf,0,0,scr,nb,nw)
        iza=nint(c1h+0.1)
        call contio(nendf,0,0,scr,nb,nw)
-       call dranam(10*iza+l2h,text8)
+       call dranam(10*iza+l2h,text12)
      endif
      write(nsyso,'('' --> processing material '',a, &
-     &  ''  (endf identification ='',i8,'')'')') text8,matno
+     &  ''  (endf identification ='',i8,'')'')') text12,matno
      !
      if(nendf.ne.0) then
        ! ***construct the "isotopic specification line" for the burnup data.
-       call dradat(nendf,matno,text8)
+       call dradat(nendf,matno,text12)
      endif
      !
      ! ***energy group information for the library
@@ -273,7 +273,7 @@ contains
      endif
      !
      ! ***step on material
-     call xsmsix(draglib,text8,1)
+     call xsmsix(draglib,text12,1)
      call xsmput(draglib,'README',labell(1:18))
      !
      ! ***recover energy limits for dilution-dependent xs data
@@ -334,7 +334,7 @@ contains
    ! **concatenate two Draglib
    40 if((nendf.eq.0).and.(npen.eq.0).and.(ngen.eq.0).and. &
      &(nfp.eq.0).and.(ndcy.eq.0)) then
-     read(nsysi,*) text8,inew
+     read(nsysi,*) text12,inew
      call openz(nexpo,inew)
      ! ***import the existing xsm file to concatenate
      if (inew.eq.0) then
@@ -402,7 +402,7 @@ contains
    return
    end subroutine dragr
    !
-   subroutine dradat(nendf,matno,text8)
+   subroutine dradat(nendf,matno,text12)
    !-----------------------------------------------------------------
    ! Construct the "isotopic specification line" for the burnup data.
    !-----------------------------------------------------------------
@@ -412,7 +412,7 @@ contains
    integer :: maxa,maxedi,lz
    parameter(maxa=2000,maxedi=11,lz=6)
    integer nendf,matno
-   character hline*80,text8*8
+   character hline*80,text12*12
    integer ied,iof,iof2,iza,nb,nw
    logical lfind
    integer,save,dimension(maxedi) :: malist= &
@@ -431,8 +431,8 @@ contains
    call contio(nendf,0,0,scr,nb,nw)
    iza=nint(c1h+0.1)
    call contio(nendf,0,0,scr,nb,nw)
-   write(hline(iof:),'(a8,1x)') text8
-   iof=iof+9
+   write(hline(iof:),'(a12,1x)') text12
+   iof=iof+13
    do ied=1,maxedi
      call repoz(nendf)
      lfind=.false.
@@ -1881,7 +1881,8 @@ contains
    integer i,i1,ia,ifp,ifps,igar,ii,ile,ind,iof,ipos,iso,itext4,iz,j, &
    & jpos,k,lep1,loc,maxfp,nb,nbdpf
    real(kr) awr,energy,za
-   character hname*8,hsmg*72,hich(maxch)*8,hrch(nfath,maxch)*8,text4*4
+   character hname*12,hsmg*72,hich(maxch)*12,hrch(nfath,maxch)*12
+   character text4*4
    integer,allocatable,dimension(:,:) :: idreac,ipreac
    real(kr),allocatable,dimension(:) :: ddeca,scr
    real(kr),allocatable,dimension(:,:) :: dener,prate,yield
@@ -1892,8 +1893,8 @@ contains
    !   hich [[ hrch en br ]] /
    !   ]]
    !   end /
-   !   where hich : character*8 name of the isotope
-   !         hrch : character*8 name of a neutron induced reaction (not
+   !   where hich : character*12 name of the isotope
+   !         hrch : character*12 name of a neutron induced reaction (not
    !                a scattering type reaction)
    !         en   : energy released by the neutron induced reaction
    !                (including the kinetic energy of the secondary neutrons)
@@ -2089,7 +2090,7 @@ contains
      endif
      hiso(1,iso)=hname(1:4)
      hiso(2,iso)=hname(5:8)
-     hiso(3,iso)=' '
+     hiso(3,iso)=hname(9:12)
    enddo
    !
    maxfp=nbdpf+50 ! reserve 50 location for lumped fp daughters
@@ -2129,7 +2130,7 @@ contains
    & yield(nbfiss,maxfp)
    integer, allocatable, dimension(:) :: indpf
    real(kr), allocatable, dimension(:) :: scr
-   character text4*4,hname*8,hsmg*72
+   character text4*4,hname*12,hsmg*72
    real(kr), save, dimension(maxen) :: terp=(/ 1.0, 0.0, 0.0, 0.0 /)
    !
    allocate(indpf(nbdpf),scr(maxa))
@@ -2401,7 +2402,7 @@ contains
    & nlump
    real(kr) prgar,ymax
    real(kr) en(nfath,nbch),br(nfath,nbch)
-   character hrch(nfath,nbch)*8,hich(nbch)*8,hname*8,text4*4
+   character hrch(nfath,nbch)*12,hich(nbch)*12,hname*12,text4*4
    integer mylist(nbiso),idreac(nreac,nbiso),ipreac(nfath,nbiso),istate(nstate)
    character(len=4) hiso(3,nbiso),hreac(2,maxrea),in(2)
    real(kr) half,dener(nreac,nbiso),ddeca(nbiso),prate(nfath,nbiso), &
@@ -2424,9 +2425,11 @@ contains
    do iso=1,nbch
      in(1)=hich(iso)(1:4)
      in(2)=hich(iso)(5:8)
+     in(3)=hich(iso)(9:12)
      do jso=1,nbiso
        j0=jso
-       if((in(1).eq.hiso(1,jso)).and.(in(2).eq.hiso(2,jso))) go to 10
+       if((in(1).eq.hiso(1,jso)).and.(in(2).eq.hiso(2,jso)).and. &
+           (in(3).eq.hiso(3,jso))) go to 10
      enddo
      call error('dralum','unable to find '//hich(iso),' ')
      10 ipos(iso,1)=j0
@@ -2636,20 +2639,20 @@ contains
        half=1.0e8*log(2.0)/ddeca(jnd)/86400.0
        if(ddeca(jnd).eq.0.0) then
          call dranam(mylist(jnd),hname)
-         write(nsyso,'('' warning: isotope '',a8,'' is lumped and'', &
+         write(nsyso,'('' warning: isotope '',a12,'' is lumped and'', &
          & '' is stable. Max fission yield='',1p,e8.1,''%'')') hname,ymax*100.0
          if(ymax.gt.1.0E-2) call error('dralum','isotope '//hname// &
          & ' should not be lumped',' ')
        else if((half.gt.30.0).and.(half.lt.999999.99)) then
          call dranam(mylist(jnd),hname)
-         write(nsyso,'('' warning: isotope '',a8,'' is lumped and'', &
+         write(nsyso,'('' warning: isotope '',a12,'' is lumped and'', &
          & '' has a half-life of'',f10.2,'' days. Max fission yield='', &
          & 1p,e8.1,''%'')') hname,half,ymax*100.0
          if(ymax.gt.1.0E-2) call error('dralum','isotope '//hname// &
          & ' should not be lumped',' ')
        else if(half.gt.30.0) then
          call dranam(mylist(jnd),hname)
-         write(nsyso,'('' warning: isotope '',a8,'' is lumped and'', &
+         write(nsyso,'('' warning: isotope '',a12,'' is lumped and'', &
          & '' has a half-life of'',1p,e10.3,'' days. Max fission yi'', &
          & ''eld='',e8.1,''%'')') hname,half,ymax*100.0
          if(ymax.gt.1.0E-2) call error('dralum','isotope '//hname// &
@@ -2679,17 +2682,19 @@ contains
            if(ipreac(ifath,ind).eq.ipreac(j,ind)) then
              jnd1=ipreac(ifath,ind)/100
              jnd2=ipreac(j,ind)/100
-             write(nsyso,'(/27h dralum: duplicate fathers:,2a4, &
-             & 1x,2a4)') hiso(1,jnd1),hiso(2,jnd1),hiso(1,jnd2),hiso(2,jnd2)
-             write(hname,'(2a4)') hiso(1,ind),hiso(2,ind)
+             write(nsyso,'(/27h dralum: duplicate fathers:,3a4, &
+             & 1x,3a4)') hiso(1,jnd1),hiso(2,jnd1),hiso(3,jnd1) &
+             & ,hiso(1,jnd2),hiso(2,jnd2),hiso(3,jnd2)
+             write(hname,'(3a4)') hiso(1,ind),hiso(2,ind),hiso(3,ind)
              call error('dralum','duplicate fathers for '//hname,' ')
            endif
          enddo
          call draind(nbch,ipreac(ifath,ind)/100,ipos(1,1),jso)
          if(jso.le.0) then
            jnd=ipreac(ifath,ind)/100
-           write(nsyso,'(/24h dralum: unknown father ,2a4,5h for , &
-           & 2a4)') hiso(1,jnd),hiso(2,jnd),hiso(1,ind),hiso(2,ind)
+           write(nsyso,'(/24h dralum: unknown father ,3a4,5h for , &
+           & 3a4)') hiso(1,jnd),hiso(2,jnd),hiso(3,jnd),           &
+           & hiso(1,ind),hiso(2,ind),hiso(3,ind)
          else
            nn=nn+1
            if(nn.gt.maxfat) then
@@ -2797,7 +2802,7 @@ contains
    !-----------------------------------------------------------------
    use util   ! provides error
    integer izae,i,ia,iz,ifps,iof1,iof2,nia,niz
-   character hname*8,hformat*12
+   character hname*12,hformat*12
    character(len=2), save, dimension(0:111) :: cs= &
     (/    'n ','H ','He','Li','Be','B ','C ','N ','O ','F ','Ne', &
    & 'Na','Mg','Al','Si','P ','S ','Cl','Ar','K ','Ca','Sc','Ti', &
