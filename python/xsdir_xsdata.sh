@@ -18,12 +18,18 @@ do
     xsdirline=$(awk -F '[[:space:]]+' '{print $2, $3, FILENAME, "0", $6, $7, $8, $9, $10, $11}' $xsdir_individual)
 #   xsdir file shall point toward ace filename
     xsdirline=$(sed 's/\.xsdir/.ace/' <<< $xsdirline)
+#   For the continuous-energy (non-TSL) ace files, capture the eventual TSL name
+#   In every other cases, tsl variable should be empty
+    tsl=$(awk -F/ '{if ($0 !~ /tsl/) print $NF}' <<< $xsdirline)
+    tsl=$(echo $tsl | cut -d"_" -f1 | sed 's/^[0-9]\+//g' )
 #   Capture random sampling number in xsdir path
     rand=$(cut -d"_" -f2 <<< $xsdir_individual | cut -d"/" -f1)
     xsdirline=$(awk '{
 #   Dealing with metastable isotopes: if ace filenames contains a 3 in third position, then add a "m" after the ZAID identifier
     if ($3 ~ /\/([0-9])[0-9]3[0-9][0-9][^/]*.ace$/)
         sub("\\.","m.",$1);
+#   Dealing with continuous-energy ace that are associated to TSL files
+    sub("\\.","'$tsl'.",$1);
 #   Dealing with TENDL random sampling
     if ($3 ~ /TENDL/)
         sub("\\.","_'$rand'.",$1);

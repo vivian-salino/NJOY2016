@@ -1175,12 +1175,16 @@ class PyNjoy_mp:
       file_data.write(text_data)
       file_data.close()
       os.system(myNjoy)
+      if self.scatteringLaw:
+       scatsuffix = self.scatName
+      else:
+       scatsuffix = ''
       if os.path.isfile("tape48"):
-       os.system("mv tape48 " + str(self.za) + "_" + "%.0f"%tmp + "K_tsl.ace" )
-       os.system("mv tape49 " + str(self.za) + "_" + "%.0f"%tmp + "K_tsl.xsdir" )
+       os.system("mv tape48 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K_tsl.ace" )
+       os.system("mv tape49 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K_tsl.xsdir" )
       if os.path.isfile("tape38"):
-       os.system("mv tape38 " + str(self.za) + "_" + "%.0f"%tmp + "K.ace" )
-       os.system("mv tape39 " + str(self.za) + "_" + "%.0f"%tmp + "K.xsdir" )
+       os.system("mv tape38 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K.ace" )
+       os.system("mv tape39 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K.xsdir" )
        print "ACE file for " + self.hmat + " created"
       else:
        raise PyNjoyError("ACE or TSL file for " + self.hmat + " not created")
