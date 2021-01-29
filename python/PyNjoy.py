@@ -961,25 +961,22 @@ class PyNjoy:
       if self.scatteringLaw:
         matsab_inc = 221
         matsab_coh = 0
-        nbAtoms = 1
+        MixedAtoms = 1
         elasOpt = 0
         if self.scatteringMat == 1:    # H1_H20
-          nbAtoms = 2
           matsab_inc = 222               # h2o
         elif self.scatteringMat == 7:  # H_ZRH
-          nbAtoms = 2
           elasOpt = 1
           matsab_inc = 225               # zrhyd
           matsab_coh = 226               # zrhyd$
         elif self.scatteringMat == 11: # H2_D20
-          nbAtoms = 2
           matsab_inc = 228               # d2o
         elif self.scatteringMat == 26: # Be
           elasOpt = 1
           matsab_inc = 231               # be
           matsab_coh = 232               # be$
         elif self.scatteringMat == 27: # BeO
-          nbAtoms = 2
+          MixedAtoms = 2
           elasOpt = 1
           matsab_inc = 233               # beo
           matsab_inc = 234               # beo$
@@ -988,16 +985,15 @@ class PyNjoy:
           matsab_inc = 229               # graph
           matsab_inc = 230               # graph$
         elif self.scatteringMat == 37: # H_CH2
-          nbAtoms = 2
           matsab_inc = 223               # poly
         elif self.scatteringMat == 40: # H_C6H6 (benzine)
-          nbAtoms = 2
+          MixedAtoms = 2
           matsab_inc = 227               # benz
         elif self.scatteringMat == 58: # Zr_ZRH
-          nbAtoms = 2
           elasOpt = 1
           matsab_inc = 235               # zrhyd
           matsab_inc = 236               # zrhyd$
+        self.__dict__.update({"MixedAtoms": MixedAtoms})
         text_data = text_data + """
       acer
       -21 -25 0 48 49
@@ -1005,7 +1001,7 @@ class PyNjoy:
       'pendf tape from %(evaluationName)s'/
       %(mat)d  %(textTmp)s %(scatName)s/
       %(za)d 0 0 /
-      %(matsab_inc)d 16 %(matsab_coh)d %(elasOpt)d %(nbAtoms)d 4.0 0 0 /
+      %(matsab_inc)d 16 %(matsab_coh)d %(elasOpt)d %(MixedAtoms)d 4.0 0 0 /
       acer / Check ACE files
       0 48 0 50 51
       7 1 1 -1/
