@@ -13,7 +13,6 @@ print('___TIMER___: BEGIN = 0      s')
 #############################################################################
 #  file locations & options
 #############################################################################
-#iso = 'O16'
 iso = str(sys.argv[2])
 # folder name where computations are performed
 evalName   = "/SCRATCH/ORION/" + getpass.getuser() + "/Njoy/TENDL/" + iso
@@ -28,7 +27,6 @@ njoy_jobs = VectPyNjoy()
 njoy_jobs.setncpu(ncpu=int(sys.argv[1]))
 
 nrand = 300
-#nrand = 2
 
 if iso == 'Zr91' and nrand > 180:
   nrand = 180
@@ -61,8 +59,6 @@ elif iso == 'Cd114' and nrand > 60:
 elif iso == 'Cd116' and nrand > 20:
   nrand = 20
 elif iso == 'Cr52' and nrand > 10:
-  nrand = 10
-elif iso == 'Fe56' and nrand > 10:
   nrand = 10
 elif iso == 'Fe54' and nrand > 180:
   nrand = 180

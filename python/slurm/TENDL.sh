@@ -7,6 +7,7 @@ mkdir -p /SCRATCH/ORION/salino-viv/Njoy/TENDL
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 20 U238 " -c 20 -t 12-00:00:00 --mem-per-cpu=10G -J U238
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 16 U235 " -c 16 -t 12-00:00:00 --mem-per-cpu=10G -J U235
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 12 O16  " -c 12 -t 12-00:00:00 --mem-per-cpu=10G -J O16
+sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 12 Fe56 " -c 12 -t 12-00:00:00 --mem-per-cpu=10G -J Fe56
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 12 Ni58 " -c 12 -t 12-00:00:00 --mem-per-cpu=10G -J Ni58
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 12 Zr90 " -c 12 -t 12-00:00:00 --mem-per-cpu=10G -J Zr90
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 8  Zr91 " -c 8  -t 12-00:00:00 --mem-per-cpu=10G -J Zr91
@@ -25,5 +26,4 @@ sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Cd112" -c 2  -t 12
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Cd113" -c 2  -t 12-00:00:00 --mem-per-cpu=10G -J Cd113
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Cd114" -c 2  -t 12-00:00:00 --mem-per-cpu=10G -J Cd114
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Cd116" -c 2  -t 12-00:00:00 --mem-per-cpu=10G -J Cd116
-sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Fe56 " -c 2  -t 12-00:00:00 --mem-per-cpu=10G -J Fe56
 sleep 10 ; sbatch --wrap="cd .. ; srun python2 TENDL_mp.py 2  Cr52 " -c 2  -t 12-00:00:00 --mem-per-cpu=10G -J Cr52
