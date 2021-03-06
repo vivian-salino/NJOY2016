@@ -46,7 +46,7 @@ class PyNjoy:
     myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     os.chdir(self.evaluationName)
     textDil=""
     if self.dilutions:
@@ -378,7 +378,7 @@ class PyNjoy:
     myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     os.chdir(self.evaluationName)
     htime = time.ctime(time.time())
     self.__dict__.update({"htime"  : htime})
@@ -803,7 +803,7 @@ class PyNjoy:
     myCwd = os.getcwd()
     myNjoy = myCwd + '/' + self.execDir + "/njoy<tempFile"
     evaluationNameBase =  os.path.basename(self.evaluationName)
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     os.chdir(self.evaluationName)
     if os.path.isfile("drag"): os.remove("drag")
     if os.path.isfile("draglib" + evaluationNameBase):

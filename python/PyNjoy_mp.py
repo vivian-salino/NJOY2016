@@ -55,7 +55,7 @@ class PyNjoy_mp:
 
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     if not os.path.isdir(self.evaluationName + '/' + self.hmat): os.mkdir(self.evaluationName + '/' + self.hmat)
     os.chdir(self.evaluationName + '/' + self.hmat)
     textDil=""
@@ -388,7 +388,7 @@ class PyNjoy_mp:
     myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     if not os.path.isdir(self.evaluationName + '/' + self.hmat): os.mkdir(self.evaluationName + '/' + self.hmat)
     os.chdir(self.evaluationName + '/' + self.hmat)
     htime = time.ctime(time.time())
@@ -1053,7 +1053,7 @@ class PyNjoy_mp:
                   data_dict[key] = info[:-1]
                   mat_dict[key] = 10*int(mat)
                   if key.find('_') != -1: mat_dict[key] = mat_dict[key] - 1
-          os.chdir(self.evaluationName)
+          os.chdir('..')
       dictKeys = data_dict.keys()
       dictKeys.sort(lambda a, b: mat_dict[a]-mat_dict[b])
       chainFile = open(chainFileName,'w')
@@ -1087,7 +1087,7 @@ class PyNjoy_mp:
     myNjoy = myCwd + '/' + self.execDir + "/njoy<file_data"
     if not os.path.isfile(os.path.expandvars(self.evaluationFile)):
       raise PyNjoyError("evaluation file " + self.evaluationFile + " not found")
-    if not os.path.isdir(self.evaluationName): os.mkdir(self.evaluationName)
+    if not os.path.isdir(self.evaluationName): os.system('mkdir -p ' + self.evaluationName)
     if not os.path.isdir(self.evaluationName + '/' + self.hmat): os.mkdir(self.evaluationName + '/' + self.hmat)
     os.chdir(self.evaluationName + '/' + self.hmat)
     os.system("ln -s " + self.evaluationFile + " tape20")
@@ -1243,16 +1243,16 @@ class VectPyNjoy(list):
         print('njoy run for ' + njoy_jobs[idx].hmat + ' reported an error!')
   def dconcat(self):
     myCwd = os.getcwd()
-    os.chdir(self[1].evaluationName)
-    if os.path.isfile("draglib" + os.path.basename(self[1].evaluationName)):
-      print('Previous draglib' + os.path.basename(self[1].evaluationName) + ' file exists. Deleting it...')
-      os.remove("draglib" + os.path.basename(self[1].evaluationName))
+    os.chdir(self[0].evaluationName)
+    if os.path.isfile("draglib" + os.path.basename(self[0].evaluationName)):
+      print('Previous draglib' + os.path.basename(self[0].evaluationName) + ' file exists. Deleting it...')
+      os.remove("draglib" + os.path.basename(self[0].evaluationName))
     for this_job in self:
       print('Contatenating ' + this_job.hmat + ' into draglib file...')
-      myCommand = "head -q -n -1 " + this_job.evaluationName + "/" + this_job.hmat + "/draglib" + this_job.hmat + " >> draglib" + os.path.basename(this_job.evaluationName)
+      myCommand = "head -q -n -1 " + this_job.hmat + "/draglib" + this_job.hmat + " >> draglib" + os.path.basename(this_job.evaluationName)
       os.system(myCommand)
     print('Adding closing line into draglib file...')
-    myCommand = "tail -n 1 " + self[1].evaluationName + "/" + self[1].hmat + "/draglib" + self[1].hmat + " >> draglib" + os.path.basename(self[1].evaluationName)
+    myCommand = "tail -n 1 " + self[0].hmat + "/draglib" + self[0].hmat + " >> draglib" + os.path.basename(self[0].evaluationName)
     os.system(myCommand)
     os.chdir(myCwd)
   def acer(self):

@@ -1,16 +1,14 @@
 #!/usr/local/bin/python
 from PyNjoy import *
-from os import uname
-import getpass
+import os
 jeff3p1 = PyNjoy()
-jeff3p1.evaluationName = "/SCRATCH/ORION/" + getpass.getuser() + "/Njoy/JEFF-3.1.1/"
+evaluationDir = os.getcwd() + "/../../ENDF/JEFF-3.1.1/"
+jeff3p1.evaluationName = "../output/JEFF-3.1.1/"
 jeff3p1.execDir = ".."
 jeff3p1.nstr = 22
 jeff3p1.iwt = 4
 jeff3p1.Espectra = None
 jeff3p1.autolib = (2.76792, 677.2873, 0.00125)
-
-evaluationDir = os.path.expanduser('~') + "/work/evaluations/Jeff3.1.1/"
 
 jeff3p1.legendre = 3
 jeff3p1.hmat = "H1_H2O"

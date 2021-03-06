@@ -1,67 +1,32 @@
 #!/usr/bin/env python
 from PyNjoy_mp import *
-import os, sys, time, copy, getpass
+import os, sys, copy, glob
 from collections import OrderedDict
 # Parallel distribution of the library generation
 # Based on jeff3p1p1.py (172g)
 # Vivian SALINO - IRSN - 05/2020
 # Based on work from Richard Chambon (Ecole Polytechnique) and Javier Ortensi (Idaho National laboratory)
 
-tim0=time.time()
-print('___TIMER___: BEGIN @' + str(tim0))
-print('___TIMER___: BEGIN = 0      s')
 #############################################################################
 #  file locations & options
 #############################################################################
 iso = str(sys.argv[2])
 # folder name where computations are performed
-evalName   = "/SCRATCH/ORION/" + getpass.getuser() + "/Njoy/TENDL/" + iso
+evalName   = "../output/TENDL-2019/" + iso
 if not os.path.isdir(evalName): os.mkdir(evalName)
 # relative path to the 'njoy' code from current folder
 execDir    = ".."
 # evaluation folder paths
-evalDir    = os.path.expanduser('~') + "/work/evaluations/TENDL-2019/" + iso + "/"
-scatLawDir = os.path.expanduser('~') + "/work/evaluations/TENDL-2019/" + iso + "/"
+evalDir    = os.getcwd() + "/../../ENDF/TENDL-2019/" + iso + "/"
+scatLawDir = os.getcwd() + "/../../ENDF/TENDL-2019/" + iso + "/"
 
 njoy_jobs = VectPyNjoy()
 njoy_jobs.setncpu(ncpu=int(sys.argv[1]))
 
-nrand = 300
-
-if iso == 'Zr91' and nrand > 180:
-  nrand = 180
-elif iso == 'Zr92' and nrand > 200:
-  nrand = 200
-elif iso == 'Zr94' and nrand > 200:
-  nrand = 200
-elif iso == 'Zr96' and nrand > 250:
-  nrand = 200
-elif iso == 'Ag107' and nrand > 100:
-  nrand = 100
-elif iso == 'Ag109' and nrand > 60:
-  nrand = 60
-elif iso == 'In115' and nrand > 100:
-  nrand = 100
-elif iso == 'Cd106' and nrand > 20:
-  nrand = 20
-elif iso == 'Cd108' and nrand > 20:
-  nrand = 20
-elif iso == 'Cd110' and nrand > 40:
-  nrand = 40
-elif iso == 'Cd111' and nrand > 40:
-  nrand = 40
-elif iso == 'Cd112' and nrand > 60:
-  nrand = 60
-elif iso == 'Cd113' and nrand > 40:
-  nrand = 40
-elif iso == 'Cd114' and nrand > 60:
-  nrand = 60
-elif iso == 'Cd116' and nrand > 20:
-  nrand = 20
-elif iso == 'Cr52' and nrand > 10:
-  nrand = 10
-elif iso == 'Fe54' and nrand > 180:
-  nrand = 180
+# Count the available ENDF files, capping at 300 samples
+nrand = len(glob.glob(evalDir + '/*')) - 1
+if nrand > 299:
+    nrand = 299
 
 job_ref = lib_base(evalName, execDir, evalDir, scatLawDir)
 job_ref.nstr = 22
@@ -73,8 +38,6 @@ job_ref.autolib = (2.76792, 677.2873, 0.00125)
 job_ref.fp = 0
 job_ref.concat = 1
 
-# The following GROUPR bugs are regularly encountered with
-# U238 if too many temperatures and dilutions are used :
 # With 19 dilutions and more than 1 temperature, following GROUPR bug is encountered with U238 :
 # (1) https://github.com/njoy/NJOY2016/issues/161
 # (2) segfault in line (according to gdb)
@@ -83,12 +46,7 @@ job_ref.concat = 1
 #job_ref.suff = ( 0.02, 0.05, 0.09, 0.12, 0.20 )
 job_ref.temperatures = ( 293., 550., 900. )
 job_ref.suff = ( 0.02, 0.05, 0.09 )
-# If only 1 temperature is fitted, following value shall be used for Tihange start-up before previous bugs are corrected (at the very least)
-#job_ref.temperatures = [ 559.26111 ]
-#job_ref.suff = [ 0.05 ]
 
-tim = time.time()
-print('___TIMER___: General options done =' + str(tim - tim0) + ' s')
 #############################################################################
 #  O16
 #############################################################################
@@ -205,10 +163,6 @@ for irand in range(0,nrand):
 
 print('Number of jobs from Zr isotopes : '+ str(len(njoy_jobs) - c1))
 
-tim1 = time.time()
-print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
-tim = tim1
-
 #############################################################################
 #  AIC
 #############################################################################
@@ -318,10 +272,6 @@ for irand in range(0,nrand):
 
 print('Number of jobs from AIC isotopes : '+ str(len(njoy_jobs) - c1))
 
-tim1 = time.time()
-print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
-tim = tim1
-
 #############################################################################
 #  Stainless steel
 #############################################################################
@@ -371,11 +321,6 @@ for irand in range(0,nrand):
 
 print('Number of jobs from SS isotopes : '+ str(len(njoy_jobs) - c1))
 
-tim1 = time.time()
-print('___TIMER___: All jobs definition done =' + str(tim1 - tim) + ' s')
-tim = tim1
-
-
 ##############################################################################
 ##  check file locations
 ##############################################################################
@@ -395,8 +340,12 @@ njoy_jobs.dendf()
 njoy_jobs.acer()
 njoy_jobs.dconcat()
 
-# As it is, calling 'burnup' method is necessary to retrieve previously computed Q values (more precisely energy released by any reaction ; necessary to compute power distributions) and to insert them into Draglib file. Any decay and fission yield file may be used. When no burnup steps are performed, the choice of these files has no impact.
+# In the current state of DRAGR, calling 'burnup' method is necessary to
+# retrieve previously computed Q values (more precisely energy released by any
+# reaction ; necessary to compute power distributions) and to insert them into
+# Draglib file. Any decay and fission yield file may be used. When no burnup
+# steps are performed, the choice of these files has no impact.
 this_job = copy.deepcopy(job_ref)
-this_job.fissionFile = os.path.expanduser('~') + "/work/evaluations/Jeff3.1.1/JEFF311NFY.ASC"
-this_job.decayFile   = os.path.expanduser('~') + "/work/evaluations/Jeff3.1.1/JEFF311RDD_ALL.OUT"
+this_job.fissionFile = evalDir + "../../JEFF-3.1.1/JEFF311NFY.ASC"
+this_job.decayFile   = evalDir + "../../JEFF-3.1.1/JEFF311RDD_ALL.OUT"
 this_job.burnup()
