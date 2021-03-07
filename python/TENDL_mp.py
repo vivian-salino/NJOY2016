@@ -3,7 +3,7 @@ from PyNjoy_mp import *
 import os, sys, copy, glob
 from collections import OrderedDict
 # Parallel distribution of the library generation
-# Based on jeff3p1p1.py (172g)
+# Based on jeff3p3_shem295.py
 # Vivian SALINO - IRSN - 05/2020
 # Based on work from Richard Chambon (Ecole Polytechnique) and Javier Ortensi (Idaho National laboratory)
 
@@ -29,12 +29,12 @@ if nrand > 299:
     nrand = 299
 
 job_ref = lib_base(evalName, execDir, evalDir, scatLawDir)
-job_ref.nstr = 22
+job_ref.nstr = 25
 job_ref.eaf = 0
 job_ref.fission = None
 job_ref.dilutions = None
 job_ref.Espectra = None
-job_ref.autolib = (2.76792, 677.2873, 0.00125)
+job_ref.autolib = (4.632489, 1.11377e4, 0.0005)
 job_ref.fp = 0
 job_ref.concat = 1
 
@@ -44,8 +44,13 @@ job_ref.concat = 1
 # xhi=sedist(khi+4+2*nrhi+2*nphi)
 #job_ref.temperatures = ( 293., 550., 900., 1200., 2000. )
 #job_ref.suff = ( 0.02, 0.05, 0.09, 0.12, 0.20 )
-job_ref.temperatures = ( 293., 550., 900. )
-job_ref.suff = ( 0.02, 0.05, 0.09 )
+
+# U238 will crash with more than 172 energy groups...
+#job_ref.temperatures = ( 293., 550., 900. )
+#job_ref.suff = ( 0.02, 0.05, 0.09 )
+# ...so we've reduced to two temperatures only
+job_ref.temperatures = ( 550., 900. )
+job_ref.suff = ( 0.05, 0.09 )
 
 #############################################################################
 #  O16
@@ -78,7 +83,7 @@ for irand in range(0,nrand):
     this_job.mat = 9228
     this_job.evaluationFile = this_job.evaluationDir + "U235-n_rand_" + str(irand).zfill(4)
     this_job.fission = 2 # fission with delayed neutrons
-    this_job.ss = (2.76792, 2.47875e4)
+    this_job.ss = (4.632489, 2.499908e4)
     this_job.potential = 11.6070
     this_job.dilutions = ( 1.e10, 10000.0, 5957.50244, 3549.18335, 2114.42676, \
     1259.67004, 750.448669, 447.079956, 266.347961, 158.676849, 94.5317612, 56.3173141, 33.5510521, 19.9880447, \
@@ -92,7 +97,7 @@ for irand in range(0,nrand):
     this_job.mat = 9237
     this_job.evaluationFile = this_job.evaluationDir + "U238-n_rand_" + str(irand).zfill(4)
     this_job.fission = 2 # fission with delayed neutrons
-    this_job.ss = (2.76792, 1.22773e5)
+    this_job.ss = (4.632489, 3.206464e5)
     this_job.potential = 11.1710
     this_job.dilutions = ( 1.e10, 10000.0, 5957.50244, 3549.18335, 2114.42676, 1259.67004, 750.448669, 447.079956, 266.347961, 158.676849, 94.5317612, 56.3173141, 33.5510521, 19.9880447, 11.9078817, 7.09412289, 4.22632504, 2.51783395, 1.5 )
     this_job.za = 92238
@@ -107,7 +112,7 @@ c1 = len(njoy_jobs)
 job_ref_fp = copy.deepcopy(job_ref)
 job_ref_fp.legendre = 0
 job_ref_fp.fp = 1
-job_ref_fp.ss = (2.76792, 1.66156e4)
+job_ref_fp.ss = (4.632489, 1.858471e4)
 
 for irand in range(0,nrand):
 
@@ -119,6 +124,7 @@ for irand in range(0,nrand):
     this_job.potential = 6.5144
     this_job.dilutions = ( 1.e10, 10000.0,  3866.97, 1495.35, 578.2475, 223.6068, 86.4682, 33.4370, 12.9300, 5.0 )
     this_job.za = 40090
+    this_job.autolib = (4.632489, 3.481068e3, 0.0005)
     njoy_jobs.append(this_job)
 
   if iso == 'Zr91':
@@ -147,7 +153,7 @@ for irand in range(0,nrand):
     this_job.mat = 4037
     this_job.evaluationFile = this_job.evaluationDir + "n-Zr094-rand-" + str(irand).zfill(4)
     this_job.potential = 6.5144
-    this_job.dilutions = dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
+    this_job.dilutions = ( 1.e10, 10000.0, 3546.31, 1257.43, 445.8898, 158.1139, 56.0677, 19.8818, 7.0501, 2.5 )
     this_job.za = 40094
     njoy_jobs.append(this_job)
 
@@ -170,7 +176,7 @@ c1 = len(njoy_jobs)
 job_ref_fp = copy.deepcopy(job_ref)
 job_ref_fp.legendre = 0
 job_ref_fp.fp = 1
-job_ref_fp.ss = (2.76792, 1.66156e4)
+job_ref_fp.ss = (4.632489, 1.858471e4)
 
 for irand in range(0,nrand):
 
@@ -279,7 +285,7 @@ c1 = len(njoy_jobs)
 job_ref_fp = copy.deepcopy(job_ref)
 job_ref_fp.legendre = 0
 job_ref_fp.fp = 1
-job_ref_fp.ss = (2.76792, 1.66156e4)
+job_ref_fp.ss = (4.632489, 1.858471e4)
 
 for irand in range(0,nrand):
 
@@ -346,6 +352,6 @@ njoy_jobs.dconcat()
 # Draglib file. Any decay and fission yield file may be used. When no burnup
 # steps are performed, the choice of these files has no impact.
 this_job = copy.deepcopy(job_ref)
-this_job.fissionFile = evalDir + "../../JEFF-3.1.1/JEFF311NFY.ASC"
-this_job.decayFile   = evalDir + "../../JEFF-3.1.1/JEFF311RDD_ALL.OUT"
+this_job.fissionFile = evalDir + "../../JEFF-3.3/JEFF33-nfy.asc"
+this_job.decayFile   = evalDir + "../../JEFF-3.3/JEFF33-rdd_all.asc"
 this_job.burnup()
