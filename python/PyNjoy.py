@@ -31,6 +31,7 @@ class PyNjoy:
     self.gstr = 0
     self.oldlib = None
     self.purr = None
+    self.serpent = None
     self.sgref = 1.0E10
     self.yields = None
     self.iburn = -1
@@ -146,7 +147,29 @@ class PyNjoy:
     %(textTmp)s/
     0/
     """%self.__dict__
-    if self.dilutions and self.purr:
+    if self.serpent:
+      # GASPR and HEATR options from Riku Tuominen's runnjoy_kermas.pl (VTT)
+      text_data = text_data + """
+      gaspr
+      -21 -23 -24/
+      """%self.__dict__
+      # Mode 2: photon energy is deposited locally
+      text_data = text_data + """
+      heatr
+      -21 -24 -34/
+      %(mat)d 8 0 0 1 1/
+      302 303 304 318 401 402 443 444/
+      moder
+      -34 -23
+      """%self.__dict__
+      # Mode 3 : photons are transported
+      text_data = text_data + """
+      heatr
+      -21 -24 -36/
+      %(mat)d 8 0 0 0 1/
+      302 303 304 318 401 402 443 444/
+      """%self.__dict__
+    if self.dilutions and (self.purr or self.serpent):
       text_data = text_data + """
     purr
     -21 -23 -24
@@ -154,6 +177,17 @@ class PyNjoy:
     %(textTmp)s/
     %(textDil)s/
     0/
+      """%self.__dict__
+      if self.serpent:
+        text_data = text_data + """
+    purr
+    -21 -36 -37
+    %(mat)d %(nbTmp)d %(nbDil)d 20 32/
+    %(textTmp)s/
+    %(textDil)s/
+    0/
+    moder
+    -37 66
       """%self.__dict__
     elif self.dilutions:
       text_data = text_data + """
@@ -163,6 +197,12 @@ class PyNjoy:
     %(textTmp)s/
     %(textDil)s/
     0/
+      """%self.__dict__
+    else:
+        if self.serpent:
+          text_data = text_data + """
+    moder
+    -36 66
       """%self.__dict__
     if self.dilutions:
       text_data = text_data + """
@@ -210,6 +250,8 @@ class PyNjoy:
     os.system("ln -s " + self.evaluationFile + " tape20")
     os.system(myNjoy)
     os.system("mv tape29 pendf" + self.hmat)
+    if self.serpent:
+      os.system("mv tape66 supkerma" + self.hmat)
     os.system("mv file_data file_data_pendf" + self.hmat)
     os.system("mv output out_pendf_" + self.hmat)
     os.system("chmod 644 out_pendf_" + self.hmat)
@@ -1020,13 +1062,24 @@ class PyNjoy:
        scatsuffix = self.scatName
       else:
        scatsuffix = ''
+      filename = str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K"
       if os.path.isfile("tape48"):
-       os.system("mv tape48 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K_tsl.ace" )
-       os.system("mv tape49 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K_tsl.xsdir" )
+       acefilename = filename + "_tsl.ace"
+       xsdirfilename = filename + "_tsl.xsdir"
+       os.system("mv tape48 " + acefilename)
+       os.system("mv tape49 " + xsdirfilename)
       if os.path.isfile("tape38"):
-       os.system("mv tape38 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K.ace" )
-       os.system("mv tape39 " + str(self.za) + scatsuffix + "_" + "%.0f"%tmp + "K.xsdir" )
+       acefilename = filename + ".ace"
+       xsdirfilename = filename + ".xsdir"
+       os.system("mv tape38 " + acefilename)
+       os.system("mv tape39 " + xsdirfilename)
        print "ACE file for " + self.hmat + " created"
+       # Add KERMA and URES data for SERPENT energy deposition model
+       os.system(myCwd + "/Add_KERMA_URES_Serpent.sh "
+                 + acefilename + " "
+                 + self.evaluationFile + " "
+                 + "pendf" + self.hmat + " "
+                 + "supkerma" + self.hmat)
       else:
        raise PyNjoyError("ACE or TSL file for " + self.hmat + " not created")
   #

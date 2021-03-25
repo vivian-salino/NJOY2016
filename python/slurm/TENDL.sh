@@ -4,11 +4,8 @@ echo "Remove previous TENDL runs in order to avoid interferences..."
 rm -rf ../../output/TENDL-2019
 mkdir -p ../../output/TENDL-2019
 # Allow a sleep period so that SLURM has the time to accept and launch the jobs in that order
-sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J U238  -c 20 --wrap="cd .. ; srun python2 TENDL_mp.py 20 U238 "
-sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J U235  -c 16 --wrap="cd .. ; srun python2 TENDL_mp.py 16 U235 "
-sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Ni58  -c 20 --wrap="cd .. ; srun python2 TENDL_mp.py 20 Ni58 "
+           sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Ni58  -c 20 --wrap="cd .. ; srun python2 TENDL_mp.py 20 Ni58 "
 sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Fe56  -c 16 --wrap="cd .. ; srun python2 TENDL_mp.py 16 Fe56 "
-sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J O16   -c 16 --wrap="cd .. ; srun python2 TENDL_mp.py 16 O16  "
 sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Zr90  -c 16 --wrap="cd .. ; srun python2 TENDL_mp.py 16 Zr90 "
 sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Zr91  -c 12 --wrap="cd .. ; srun python2 TENDL_mp.py 12 Zr91 "
 sleep 10 ; sbatch -t 12-00:00:00 --partition="seq,dev,par_IB" --mem-per-cpu=10G -J Zr92  -c 12 --wrap="cd .. ; srun python2 TENDL_mp.py 12 Zr92 "

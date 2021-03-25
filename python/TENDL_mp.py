@@ -25,8 +25,8 @@ njoy_jobs.setncpu(ncpu=int(sys.argv[1]))
 
 # Count the available ENDF files, capping at 300 samples
 nrand = len(glob.glob(evalDir + '/*')) - 1
-if nrand > 299:
-    nrand = 299
+if nrand > 300:
+    nrand = 300
 
 job_ref = lib_base(evalName, execDir, evalDir, scatLawDir)
 job_ref.nstr = 25
@@ -35,75 +35,11 @@ job_ref.fission = None
 job_ref.dilutions = None
 job_ref.Espectra = None
 job_ref.autolib = (4.632489, 1.11377e4, 0.0005)
+job_ref.serpent = True
 job_ref.fp = 0
 job_ref.concat = 1
-
-# With 19 dilutions and more than 1 temperature, following GROUPR bug is encountered with U238 :
-# (1) https://github.com/njoy/NJOY2016/issues/161
-# (2) segfault in line (according to gdb)
-# xhi=sedist(khi+4+2*nrhi+2*nphi)
-#job_ref.temperatures = ( 293., 550., 900., 1200., 2000. )
-#job_ref.suff = ( 0.02, 0.05, 0.09, 0.12, 0.20 )
-
-# U238 will crash with more than 172 energy groups...
-#job_ref.temperatures = ( 293., 550., 900. )
-#job_ref.suff = ( 0.02, 0.05, 0.09 )
-# ...so we've reduced to two temperatures only
-job_ref.temperatures = ( 550., 900. )
-job_ref.suff = ( 0.05, 0.09 )
-
-#############################################################################
-#  O16
-#############################################################################
-c1 = len(njoy_jobs)
-job_ref_nom = copy.deepcopy(job_ref)
-
-for irand in range(0,nrand):
-
-  if iso == 'O16':
-    this_job = copy.deepcopy(job_ref_nom)
-    this_job.hmat = "O16" + "_" + str(irand).zfill(3)
-    this_job.mat = 825
-    this_job.evaluationFile = this_job.evaluationDir + "n-O016-rand-" + str(irand).zfill(4)
-    this_job.za = 8016
-    njoy_jobs.append(this_job)
-
-print('Number of jobs from O16 : '+ str(len(njoy_jobs) - c1))
-
-#############################################################################
-#  U235, U238
-#############################################################################
-c1 = len(njoy_jobs)
-
-for irand in range(0,nrand):
-
-  if iso == 'U235':
-    this_job = copy.deepcopy(job_ref)
-    this_job.hmat = "U235" + "_" + str(irand).zfill(3)
-    this_job.mat = 9228
-    this_job.evaluationFile = this_job.evaluationDir + "U235-n_rand_" + str(irand).zfill(4)
-    this_job.fission = 2 # fission with delayed neutrons
-    this_job.ss = (4.632489, 2.499908e4)
-    this_job.potential = 11.6070
-    this_job.dilutions = ( 1.e10, 10000.0, 5957.50244, 3549.18335, 2114.42676, \
-    1259.67004, 750.448669, 447.079956, 266.347961, 158.676849, 94.5317612, 56.3173141, 33.5510521, 19.9880447, \
-    11.9078817, 7.09412289, 4.22632504, 2.51783395, 1.5 )
-    this_job.za = 92235
-    njoy_jobs.append(this_job)
-
-  if iso == 'U238':
-    this_job = copy.deepcopy(job_ref)
-    this_job.hmat = "U238" + "_" + str(irand).zfill(3)
-    this_job.mat = 9237
-    this_job.evaluationFile = this_job.evaluationDir + "U238-n_rand_" + str(irand).zfill(4)
-    this_job.fission = 2 # fission with delayed neutrons
-    this_job.ss = (4.632489, 3.206464e5)
-    this_job.potential = 11.1710
-    this_job.dilutions = ( 1.e10, 10000.0, 5957.50244, 3549.18335, 2114.42676, 1259.67004, 750.448669, 447.079956, 266.347961, 158.676849, 94.5317612, 56.3173141, 33.5510521, 19.9880447, 11.9078817, 7.09412289, 4.22632504, 2.51783395, 1.5 )
-    this_job.za = 92238
-    njoy_jobs.append(this_job)
-
-print('Number of jobs from U235 and U238 : '+ str(len(njoy_jobs) - c1))
+job_ref.temperatures = ( 293., 550., 900., 1200., 2000. )
+job_ref.suff = ( 0.02, 0.05, 0.09, 0.12, 0.20 )
 
 #############################################################################
 #  Zr

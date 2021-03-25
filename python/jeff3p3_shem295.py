@@ -9,6 +9,7 @@ jeff3p3.nstr = 25
 jeff3p3.iwt = 4
 jeff3p3.Espectra = None
 jeff3p3.autolib = (4.632489, 1.11377e4, 0.0005)
+jeff3p3.serpent = True
 
 jeff3p3.legendre = 3
 jeff3p3.hmat = "H1_H2O"
