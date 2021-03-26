@@ -12,7 +12,7 @@ rm -f $xsdir $xsdata
 echo "datapath=."            > $xsdir
 echo "atomic weight ratios" >> $xsdir
 echo "directory"            >> $xsdir
-for xsdir_individual in $(find -L ../outputlinks/*/* -name "*.xsdir")
+for xsdir_individual in $(find -L ../output/*/* -name "*.xsdir")
 do
 #   Change default "filename" (3rd column) and replace "route" with a zero (4th column)
     xsdirline=$(awk -F '[[:space:]]+' '{print $2, $3, FILENAME, "0", $6, $7, $8, $9, $10, $11}' $xsdir_individual)
