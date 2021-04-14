@@ -12,7 +12,7 @@ rm -f $xsdir $xsdata
 echo "datapath=."            > $xsdir
 echo "atomic weight ratios" >> $xsdir
 echo "directory"            >> $xsdir
-for xsdir_individual in $(find -L ../output/*/* -name "*.xsdir")
+for xsdir_individual in $(find ../output/*/* -not -path "*shem*" -name "*.xsdir")
 do
 #   Change default "filename" (3rd column) and replace "route" with a zero (4th column)
     xsdirline=$(awk -F '[[:space:]]+' '{print $2, $3, FILENAME, "0", $6, $7, $8, $9, $10, $11}' $xsdir_individual)
@@ -68,5 +68,7 @@ done
 # Produce xsdata for Serpent
 #---
 ./xsdirconvert.pl $xsdir >> $xsdata
-# Adjust filepaths so that Serpent can find the ACE files
-sed -i 's/ \.\/\.\.\// ..\/PyNjoy2016\//' $xsdata
+# In a Serpent input, not only does the user have to point to the xsdata file, but also each line of the
+# xsdata has to point to the ACE files, not starting from the xsdata file itself, but from the same point.
+# We therefore adjust the paths for Serpent.
+sed -i 's| ./../output/| ../../PyNjoy2016/output/|' $xsdata
