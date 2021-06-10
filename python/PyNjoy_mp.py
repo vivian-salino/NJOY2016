@@ -117,6 +117,13 @@ class PyNjoy_mp:
       typeLaw = 1
       nbAtoms = 1
       elasOpt = 0
+    # The thermal domain is different according to the energy mesh : it stops
+    # at 2.76792 eV for the 99-group structure and goes up to 4 eV for all the
+    # other group structures.
+    if self.nstr == 35:
+      emaxthermal = 2.76792
+    else:
+      emaxthermal = 4.0
     htime = time.ctime(time.time())
     self.__dict__.update({"textDil": textDil, \
                           "nbDil"  : nbDil,   \
@@ -129,6 +136,7 @@ class PyNjoy_mp:
                           "nbAtoms": nbAtoms, \
                           "elasOpt": elasOpt, \
                           "htime"  : htime,   \
+                          "emaxthermal": emaxthermal, \
                           "matsab_inc" : matsab_inc})
     #
     if self.scatteringLaw:
@@ -230,7 +238,7 @@ class PyNjoy_mp:
     0 -24 -35
     0 %(mat)d 16 %(nbTmp)d %(typeLaw)d 0 %(iform)d %(nbAtoms)d 221 0
     %(textTmp)s/
-    0.001 4.0
+    0.001 %(emaxthermal)d
     moder
     -35 29
     stop
@@ -242,7 +250,7 @@ class PyNjoy_mp:
     %(unitLaw)d -23 -35
     %(matLaw)d %(mat)d 16 %(nbTmp)d %(typeLaw)d %(elasOpt)d %(iform)d %(nbAtoms)d %(matsab_inc)d 0/
     %(textTmp)s/
-    0.001 4.0
+    0.001 %(emaxthermal)d
     moder
     -35 29
     stop
@@ -253,7 +261,7 @@ class PyNjoy_mp:
     0 -23 -35
     0 %(mat)d 16 %(nbTmp)d %(typeLaw)d 0 %(iform)d %(nbAtoms)d 221 0
     %(textTmp)s/
-    0.001 4.0
+    0.001 %(emaxthermal)d
     moder
     -35 29
     stop
