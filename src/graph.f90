@@ -2832,6 +2832,10 @@ contains
    write(nps,'(2f9.2,'' moveto'')') u,v
    name=font(ifont)
    call stripv(name,lname)
+   if (abs(ux).le.1e-10) ux=0.0
+   if (abs(vx).le.1e-10) vx=0.0
+   if (abs(uy).le.1e-10) uy=0.0
+   if (abs(vy).le.1e-10) vy=0.0
    write(nps,'(''/'',a,'' findfont ['',4f7.2,&
      &'' 0. 0.] makefont setfont'')') name(1:lname),&
      ht*ux,ht*vx,ht*uy,ht*vy

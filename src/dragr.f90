@@ -126,7 +126,6 @@ contains
    integer i,ig,igaut0,igaut1,igres0,igres1,iig,ipflag,iza,nb,nbesp,ndcy, &
    & nendf,nexpo,nfp,nimpo,npen,nw,ilong,ilong1,ityxsm,inew
    logical lsame
-   real(kr) enext
    real(kr) ener(maxgr+1),eesp(maxesp+1)
    real eespi(maxesp+1)
    real,allocatable,dimension(:) :: gar1,gar2
@@ -262,7 +261,7 @@ contains
        if(iig.ne.0) call error('dragr','bad limits for energy-depen' &
        & //'dent fission spectra(2)',' ')
        do iig=1,nbesp+1
-         eespi(iig)=eesp(nbesp+2-iig)
+         eespi(iig)=real(eesp(nbesp+2-iig))
        enddo
        call xsmput(draglib,'CHI-ENERGY',eespi(1:nbesp+1))
        call xsmput(draglib,'CHI-LIMITS',iesp(1:nbesp+1))
@@ -527,7 +526,7 @@ contains
      do ig=1,ng+1
        ener(ng-ig+2)=scr(7+nz+ig)
      enddo
-     gar(1:ng+1)=ener(1:ng+1)
+     gar(1:ng+1)=real(ener(1:ng+1))
      call xsmput(draglib,'ENERGY',gar(1:ng+1))
    else
      if(ilong.ne.ng+1) call error('drahd','invalid number of groups',' ')
@@ -558,7 +557,7 @@ contains
    integer ngen,matno,ng,igres0,igres1,ipflag,nbesp,iesp(nbesp+1)
    real(kr) rv(maxgr,maxnl,maxnz),flux(maxgr,maxnl,maxnz),aa(6), &
    & deltau(maxgr),rv2(maxgr,maxnl,1),rm2(maxgr,maxgr,maxnl,1)
-   logical lfind,lsame,lover,exist,exist2,exist3
+   logical lfind,lover,exist,exist2,exist3
    character cd*4,hsmg*131
    real awr(1),dilut(maxnz),olddil(maxnz),oldtmp(maxtmp),vector(maxgr)
    integer igfirs(maxnl),iglast(maxnl)
@@ -577,7 +576,7 @@ contains
    allocate(scr(maxa))
    call findf(matno,1,451,ngen)
    call contio(ngen,0,0,scr,nb,nw)
-   awr(1)=scr(2)
+   awr(1)=real(scr(2))
    call xsmput(draglib,'AWR',awr)
    nz=nint(scr(4))
    if(nz.gt.maxnz) call error('dramat','maxnz overflow',' ')
@@ -589,7 +588,7 @@ contains
      loc=loc+nw
    enddo
    do iz=1,nz
-     dilut(nz-iz+1)=scr(7+iz)
+     dilut(nz-iz+1)=real(scr(7+iz))
    enddo
    if(dilut(nz).lt.1.0e10) then
      call error('dramat','missing infinite dilution value',' ')
@@ -631,13 +630,13 @@ contains
        if(ntmp+ilong.gt.maxtmp) call error('dramat','maxtmp overflow',' ')
        do itm=1,ntmp
           ilong=ilong+1
-          oldtmp(ilong)=temps(itm)
+          oldtmp(ilong)=real(temps(itm))
        enddo
      endif
    else
      ilong=ntmp
      do itm=1,ntmp
-        oldtmp(itm)=temps(itm)
+        oldtmp(itm)=real(temps(itm))
      enddo
    endif
    call xsmput(draglib,'TEMPERATURE',oldtmp(1:ilong))
@@ -671,6 +670,7 @@ contains
          enddo
          call xsmput(draglib,'DILUTION',olddil(1:nz+nz0-1))
        else
+         nz0bis=0
          do iz0=1,nz0
            if(abs(dilut(1)-olddil(iz0)).le.1.0e-5*dilut(1)) then
              nz0bis=iz0-1
@@ -721,7 +721,7 @@ contains
          enddo
        endif
      enddo
-     35 if(exist3) then
+     if(exist3) then
        call fvect(maxgr,maxnl,maxnz,ngen,matno,2,ytemp,ng0,nl,nzgar, &
        & rv,flux,exist)
        if(nl.gt.nlgar) call error('dramat','inconsistent number o'// &
@@ -753,13 +753,14 @@ contains
          enddo
        endif
        !
+       igmax=ng
        do ig=ng,1,-1
          igmax=ig
          if(rv(ig,1,1).ne.0.0) go to 36
        enddo
        cycle
        36 do ig=1,igmax
-         vector(ig)=rv(ig,1,1)
+         vector(ig)=real(rv(ig,1,1))
        enddo
        call xsmput(draglib,namedi(ied),vector(1:igmax))
        if(nzgar.eq.1) go to 40
@@ -787,14 +788,14 @@ contains
              & flux(ig,1,nz-iz+1),ig,dilut(iz)
              call error('dramat',hsmg,' ')
            endif
-           vector(ig)=rv(ig,1,nz-iz+1)*flux(ig,1,nz-iz+1)-rv(ig,1,1)
+           vector(ig)=real(rv(ig,1,nz-iz+1)*flux(ig,1,nz-iz+1)-rv(ig,1,1))
          enddo
          call xsmput(draglib,namedi(ied),vector(1:iglast(1)-1))
          !
          if(ied.eq.1) then
            ! ***process 'NWT0' finite dilution fluxes
            do ig=igfirs(1),iglast(1)-1
-             vector(ig)=flux(ig,1,nz-iz+1)-1.0d0
+             vector(ig)=real(flux(ig,1,nz-iz+1)-1.0d0)
            enddo
            call xsmput(draglib,'NWT0',vector(1:iglast(1)-1))
          endif
@@ -805,10 +806,10 @@ contains
      enddo
      !
      ! ***process fission x-sections.
-     call drafis(ngen,matno,ytemp,nz0,deltau,igfirs(1),iglast(1),nbesp,iesp)
+     call drafis(ngen,matno,ytemp,nz0,igfirs(1),iglast(1),nbesp,iesp)
      !
      ! ***process scattering x-sections.
-     call drasc(ngen,matno,ytemp,nz0,deltau,igfirs,iglast,ipflag)
+     call drasc(ngen,matno,ytemp,nz0,igfirs,iglast,ipflag)
      !
      call xsmsix(draglib,' ',2)
    enddo
@@ -1050,6 +1051,7 @@ contains
      enddo
      fact1=gar1t(ig)*(sum1/sum2)
      fact2=(gar1t(ig)-gar1s(ig))*(sum1/sum3)
+     fact3=0.0
      if((ilfiss.gt.0).and.(sum4.gt.0.0)) fact3=gar1f(ig)*(sum1/sum4)
      do ibin=ibin0+1,ibin0+nfs(ig)
        bsig2(ibin)=fact2*bsig2(ibin)+(fact1-fact2)*bsig1(ibin)
@@ -1095,7 +1097,7 @@ contains
    100 format(10(1p,e12.5,1h,))
    end subroutine drauto
    !
-   subroutine drafis(nin,matd,ytemp,nz0,deltau,igfirs,iglast,nbesp,iesp)
+   subroutine drafis(nin,matd,ytemp,nz0,igfirs,iglast,nbesp,iesp)
    !-----------------------------------------------------------------
    !   utility routine for recovering fission-related information from a
    !   gendf file.
@@ -1104,7 +1106,6 @@ contains
    !   matd    material number.
    !   ytemp   absolute temperature (Kelvin).
    !   nz0     previous dilution index.
-   !   deltau  dilution widths.
    !   igfirs  fastest group index with self-shielding effect.
    !   iglast  fastest thermal group index with no self-shielding effect.
    !   nbesp   number of energy-dependent fission spectra.
@@ -1120,8 +1121,8 @@ contains
    logical lfind,exist,exist2
    character text2*2,cd*4
    real(kr) rv(maxgr,maxnl,maxnz),sigf(maxgr,maxnl,maxnz), &
-   & flux(maxgr,maxnl,maxnz),aa(6),ssum(maxdel),deltau(maxgr), &
-   & chidel(maxgr,maxdel),vsum(maxgr),sigf2(maxgr,maxnz)
+   & flux(maxgr,maxnl,maxnz),aa(6),ssum(maxdel),chidel(maxgr,maxdel), &
+   & vsum(maxgr),sigf2(maxgr,maxnz)
    integer idel,ig,ig1,ig2,igmax,il,isp,iz,jg,loc,nb,ndel,nf,ng,ng2, &
    & nl,nw,nz,nz2,nzm,nzv
    real(kr) all
@@ -1219,7 +1220,7 @@ contains
      loc=loc+nw
    enddo
    do idel=1,ndel
-     gar1(idel)=scr(lz+idel)
+     gar1(idel)=real(scr(lz+idel))
    enddo
    if(ndel.gt.0) call xsmput(draglib,'LAMBDA-D',gar1(1:ndel))
    do idel=1,ndel
@@ -1234,7 +1235,7 @@ contains
        chidel(ng-ig+1,idel)=0.0
      enddo
      do ig=1,ng
-       gar2(ig)=chidel(ig,idel)
+       gar2(ig)=real(chidel(ig,idel))
      enddo
      write(text2,'(i2.2)') idel
      call xsmput(draglib,'CHI'//text2,gar2(1:ng))
@@ -1249,8 +1250,9 @@ contains
    enddo
    do idel=1,ndel
      do ig=1,ng
-       gar2(ig)=rv(ig,1,1)*sigf(ig,1,1)*ssum(idel)
+       gar2(ig)=real(rv(ig,1,1)*sigf(ig,1,1)*ssum(idel))
      enddo
+     igmax=ng
      do ig=ng,1,-1
        igmax=ig
        if(gar2(ig).ne.0.0) go to 15
@@ -1265,9 +1267,10 @@ contains
        enddo
        do ig=igfirs,iglast-1
          if(sigf(ig,1,1).eq.0.0) cycle
-         gar2(ig)=rv(ig,1,1)*ssum(idel)*(sigf(ig,1,nz-iz+1)* &
-         & flux(ig,1,nz-iz+1)-sigf(ig,1,1))
+         gar2(ig)=real(rv(ig,1,1)*ssum(idel)*(sigf(ig,1,nz-iz+1)* &
+         & flux(ig,1,nz-iz+1)-sigf(ig,1,1)))
        enddo
+       igmax=iglast-1
        do ig=iglast-1,1,-1
          igmax=ig
          if(gar2(ig).ne.0.0) go to 16
@@ -1308,7 +1311,7 @@ contains
          enddo
        enddo
        do ig1=1,ng
-         gar2(ig1)=vsum(ig1)/all
+         gar2(ig1)=real(vsum(ig1)/all)
        enddo
        if(nbesp.eq.1) then
          call xsmput(draglib,'CHI',gar2(1:ng))
@@ -1341,12 +1344,13 @@ contains
        enddo
      enddo
    endif
+   igmax=ng
    do ig=ng,1,-1
      igmax=ig
      if(sigf2(ig,1).ne.0.0) go to 30
    enddo
    30 do ig=1,igmax
-     gar2(ig)=sigf2(ig,1)
+     gar2(ig)=real(sigf2(ig,1))
    enddo
    call xsmput(draglib,'NUSIGF',gar2(1:igmax))
    do iz=1,nz-1
@@ -1359,8 +1363,9 @@ contains
        if(flux(ig,1,1).eq.0.0) cycle
        if(sigf2(ig,1).eq.0.0) cycle
        flux(ig,1,nz-iz+1)=flux(ig,1,nz-iz+1)/flux(ig,1,1)
-       gar2(ig)=sigf2(ig,nz-iz+1)*flux(ig,1,nz-iz+1)-sigf2(ig,1)
+       gar2(ig)=real(sigf2(ig,nz-iz+1)*flux(ig,1,nz-iz+1)-sigf2(ig,1))
      enddo
+     igmax=iglast-1
      do ig=iglast-1,1,-1
        igmax=ig
        if(gar2(ig).ne.0.0) go to 40
@@ -1377,7 +1382,7 @@ contains
    return
    end subroutine drafis
    !
-   subroutine drasc(nin,matd,ytemp,nz0,deltau,igfirs,iglast,ipflag)
+   subroutine drasc(nin,matd,ytemp,nz0,igfirs,iglast,ipflag)
    !-----------------------------------------------------------------
    !   utility routine for recovering scattering-related information from
    !   a gendf file.
@@ -1386,7 +1391,6 @@ contains
    !   matd    material number.
    !   ytemp   absolute temperature (Kelvin).
    !   nz0     previous dilution index.
-   !   deltau  dilution widths.
    !   igfirs  fastest group index with self-shielding effect.
    !   iglast  fastest thermal group index with no self-shielding effect.
    !   ipflag  fission product flag.
@@ -1404,7 +1408,7 @@ contains
    integer i,ig,ig1,ig2,igar,igmax,igmin,il,imat,imax,imt,iz,loc,nb,ng, &
    & ngther,nl,nl2,nlgar,nw,nz,nze
    real(kr) ytemp,rm(maxgr,maxgr,maxnl,maxnz),flux(maxgr,maxnl,maxnz), &
-   & sigsm(maxgr,maxgr,maxnl,maxnz),deltau(maxgr),aa(6),delta,dgar,garmax
+   & sigsm(maxgr,maxgr,maxnl,maxnz),aa(6),delta,dgar,garmax
    real gar(maxgar)
    real(kr),allocatable,dimension(:) :: scr
    integer,save,dimension(maxmat) :: mtlist= &
@@ -1496,6 +1500,7 @@ contains
      enddo
    endif
    !
+   nze=0
    do imat=1,maxmat
      call fmatr(maxgr,maxnl,maxnz,nin,matd,mtlist(imat),ytemp,ng,nl, &
      & nz,rm,flux,exist)
@@ -1567,7 +1572,7 @@ contains
        do ig1=igmax,igmin,-1
          igar=igar+1
          if(igar.gt.maxgar) call error('drasc','gar overflow.',' ')
-         gar(igar)=sigsm(ig1,ig2,il,1)
+         gar(igar)=real(sigsm(ig1,ig2,il,1))
          if(abs(gar(igar)).gt.garmax) garmax=abs(gar(igar))
        enddo
      enddo
@@ -1614,8 +1619,8 @@ contains
            igar=igar+1
            if(igar.gt.maxgar) call error('drasc','gar overflow.',' ')
            if((ig1.ge.igfirs(il)).and.(ig1.lt.iglast(il))) then
-             gar(igar)=sigsm(ig1,ig2,il,nz-iz+1)*flux(ig1,il,nz-iz+1)- &
-             & sigsm(ig1,ig2,il,1)
+             gar(igar)=real(sigsm(ig1,ig2,il,nz-iz+1)*flux(ig1,il,nz-iz+1)- &
+             & sigsm(ig1,ig2,il,1))
              if(abs(gar(igar)).gt.garmax) garmax=abs(gar(igar))
            else
              gar(igar)=0.0d0
@@ -2101,9 +2106,8 @@ contains
    & ndcy,idreac,dener,ddeca,ipreac,prate,yield)
    !
    !**lump the burnup chain from nbiso to nbch isotopes
-   call dralum(maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,mylist(1,1), &
-   & hiso,nfp,ndcy,nbch,nbfpch,hich,hrch,en,br,idreac,dener,ddeca, &
-   & ipreac,prate,yield)
+   call dralum(maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,mylist(1,1),hiso, &
+   & nbch,nbfpch,hich,hrch,en,br,idreac,dener,ddeca,ipreac,prate,yield)
    deallocate(yield,prate,ddeca,dener)
    deallocate(ipreac,idreac)
    deallocate(scr)
@@ -2385,9 +2389,8 @@ contains
    return
    end subroutine draind
    !
-   subroutine dralum(maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,mylist, &
-   & hiso,nfp,ndcy,nbch,nbfpch,hich,hrch,en,br,idreac,dener,ddeca, &
-   & ipreac,prate,yield)
+   subroutine dralum(maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,mylist,hiso, &
+   & nbch,nbfpch,hich,hrch,en,br,idreac,dener,ddeca,ipreac,prate,yield)
    !-----------------------------------------------------------------
    !   complete and lump the burnup chain from nbiso to nbch isotopes.
    !   write the lumped chain on the xsm file.
@@ -2396,10 +2399,9 @@ contains
    use util   ! provides error
    integer :: maxrea,nstate,maxit,maxfat
    parameter (maxrea=13,nstate=40,maxit=20,maxfat=350)
-   integer maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,nfp,ndcy,nbch,nbfpch,ireac, &
-   & iter,iso,isoo,i,j,ia,ja,ibfp,ida,ifa,ifath,ifi,ifp,ifps,iii,im,ind,ipgar, &
-   & iz,j0,jfath,jfp,jnd,jnd1,jnd2,jso,jz,k,knd,kreac,kso,kt,nbheav,nlup,nn, &
-   & nlump
+   integer maxfp,nbiso,nbfiss,nbdpf,nreac,nfath,nbch,nbfpch,ireac,iter, &
+   & iso,isoo,i,j,ia,ja,ibfp,ida,ifa,ifath,ifi,ifp,ifps,iii,im,ind,ipgar, &
+   & iz,j0,jfath,jfp,jnd,jnd1,jnd2,jso,jz,k,knd,kreac,kso,kt,nbheav,nn,nlump
    real(kr) prgar,ymax
    real(kr) en(nfath,nbch),br(nfath,nbch)
    character hrch(nfath,nbch)*12,hich(nbch)*12,hname*12,text4*4
@@ -2423,6 +2425,7 @@ contains
    !
    ! **find the position of the lumped isotopes in the complete chain
    do iso=1,nbch
+     j0=0
      in(1)=hich(iso)(1:4)
      in(2)=hich(iso)(5:8)
      in(3)=hich(iso)(9:12)
@@ -2443,7 +2446,9 @@ contains
      ifps=mod(mylist(ind),10)
      do i=1,nfath
        if(hrch(i,iso).eq.' ') go to 30
+       ireac=0
        jz=iz
+       ja=0
        if(hrch(i,iso).eq.'nftot') then
          jz=0
          if(idreac(2,ind).eq.0) idreac(2,ind)=3
@@ -2501,6 +2506,7 @@ contains
          idreac(12,ind)=1
          ireac=12
        endif
+       if(ireac.eq.0) call error('dralum','ireac=0',' ')
        dener(ireac,ind)=en(i,iso)
        if(jz.ne.0) then
          call draind(nbiso,10000*jz+10*ja,mylist,jnd)
@@ -2702,7 +2708,7 @@ contains
              call error('dralum','maxfat overflow nn='//text4,' ')
            endif
            jpreac(nn,iso)=100*jso+mod(ipreac(ifath,ind),100)
-           rrate(nn,iso)=prate(ifath,ind)
+           rrate(nn,iso)=real(prate(ifath,ind))
          endif
        endif
      enddo
@@ -2727,7 +2733,7 @@ contains
        if(ibfp.gt.nbfpch) call error('dralum','nbfpch overflow',' ')
        ipos(iso,2)=ibfp
        do ifi=1,nbfiss
-         eyiel(ifi,ibfp)=yield(ifi,idreac(2,ind)/100)
+         eyiel(ifi,ibfp)=real(yield(ifi,idreac(2,ind)/100))
        enddo
      endif
    enddo
@@ -2750,7 +2756,7 @@ contains
        else
          jdreac(i,iso)=idreac(i,ind)
        endif
-       eener(i,iso)=dener(i,ind)
+       eener(i,iso)=real(dener(i,ind))
      enddo
      if(dener(13,ind).ne.0.0) then
         do isoo=1,nbch
@@ -2759,7 +2765,7 @@ contains
               eener(iii,isoo)=0.0
            enddo
           enddo
-        eener(2,iso)=dener(13,ind)
+        eener(2,iso)=real(dener(13,ind))
      endif
    enddo
    call xsmput(draglib,'DEPLETE-REAC',reshape(jdreac,(/ (nreac-1)*nbch /)))
@@ -2772,7 +2778,7 @@ contains
      hhhh(1,iso)=hiso(1,ipos(iso,1))
      hhhh(2,iso)=hiso(2,ipos(iso,1))
      hhhh(3,iso)=hiso(3,ipos(iso,1))
-     dddd(iso)=ddeca(ipos(iso,1))
+     dddd(iso)=real(ddeca(ipos(iso,1)))
      ipos(iso,1)=mylist(ipos(iso,1))
      if(ipos(iso,1).ge.900000) nbheav=nbheav+1
    enddo
@@ -2816,6 +2822,7 @@ contains
    & 'Bh','Hs','Mt','Ds','Rg' /)
    character(len=2), save, dimension(0:3) :: cm= (/ '  ','m ','m2','m3' /)
    !
+   iof1=0
    if(izae.eq.0) then
      ! **compute the izae index from name
      iz=0

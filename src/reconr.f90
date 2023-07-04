@@ -253,7 +253,7 @@ contains
             lrel=l1h
             nver=n2h
          endif
-         if (10*nint(zain).ne.nsub.and.nsub.ne.3) then
+         if (10*nint(zain).ne.nsub.and.nsub.ne.3.and.nsub.ne.113) then
             call error('reconr','illegal nsub for reconr',' ')
          endif
          call hdatio(nin,0,0,scr,nb,nw)

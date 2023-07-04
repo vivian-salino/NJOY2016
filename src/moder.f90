@@ -322,6 +322,7 @@ contains
    if (math.le.0) go to 740
    if (mfh.eq.0) go to 740
    if (mth.eq.0) go to 740
+   ng=n2h
    go to 710
 
    !--process covariance tape

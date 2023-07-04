@@ -196,8 +196,8 @@ contains
    call error('xsmop','(kdiget) iostat='//circ,' ')
    150 write(circ,'(i8)') irc
    call error('xsmop','(kdiput) iostat='//circ,' ')
-   160 write(hsmg,'("unable to open xsm file ''",a,"'' (ier =",i3, &
-   ").")') pfxsm%myname,pfxsm%ifile
+   160 write(hsmg,'("unable to open xsm file ''",a,"'' (ier =",i3,&
+   &").")') pfxsm%myname,pfxsm%ifile
    call error('xsmop',hsmg,' ')
    185 format (/35h xsmop: xsm file recovery. file = ',a,1h'/27x, &
    & 28hhighest attainable address =,i10/27x,20hactive directory = ',&
@@ -743,7 +743,7 @@ contains
    !----------------------------------------------------------------------
    use util   ! provides error
    character(len=12) :: namt
-   integer :: iii,irc,ipos
+   integer :: iii
    type(xsm_file),pointer :: pfxsm
    character(len=*) :: namp,nammy
    !
@@ -1170,7 +1170,6 @@ contains
          else if((nunit.ne.0).and.(imode.eq.2)) then
             write(nunit,'(8i10)') (ibase(i),i=1,jlong)
          endif
-         40 continue
          deallocate(ibase)
       else if(ityxsm.eq.2) then
          ! single precision data.

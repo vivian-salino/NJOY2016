@@ -17,7 +17,8 @@ module matxsm
 
    ! unit numbers
    integer::ngen1,ngen2,nmatx,nscrt1,nscrt2,nscrt3,nscrt4,&
-     nscrt5,nscrt6,nscrt7,nscrt8,ngen3,ngen4,ngen5,ngen6,ngen7,ngen8
+     nscrt5,nscrt6,nscrt7,nscrt8,ngen3,ngen4,ngen5,ngen6,ngen7,&
+     ngen8,ngen9
 
    ! pointers
    integer::next,icont,iholl,ifild,igrup
@@ -80,6 +81,7 @@ contains
    !   ngen6     incident he3 data from groupr (default=0)
    !   ngen7     incident alpha data from groupr (default=0)
    !   ngen8     photonuclear data from groupr (default=0)
+   !   ngen9     incident electron data from electr (default=0)
    ! card 2 user identification
    !   ivers     file version number (default=0)
    !   huse      user id (up to 16 characters, delimited by *,
@@ -112,7 +114,7 @@ contains
    !             (up to 8 characters each)
    !   matno     integer material identifier
    !             (endf mat number)
-   !   matgg     mat number for photoatomic data
+   !   matgg     mat number for photoatomic and electroatomic data
    !             (default=100*(matno/100) as in endf-6)
    !
    !-------------------------------------------------------------------
@@ -249,6 +251,8 @@ contains
 !cd    hprt(j)     hollerith identification for particle j
 !cd                     n         neutron
 !cd                     g         gamma
+!cd                     b         electron (beta-)
+!cd                     c         positron (beta+)
 !cd                     p         proton
 !cd                     d         deuteron
 !cd                     t         triton
@@ -260,8 +264,14 @@ contains
 !cd    htype(k)     hollerith identification for data type k
 !cd                     nscat     neutron scattering
 !cd                     ng        neutron induced gamma production
-!cd                     gscat     gamma scattering (atomic)
+!cd                     gscat     gamma scattering (photoatomic)
 !cd                     gg        gamma scattering (photonuclear)
+!cd                     gbeta-    gamma induced electron production
+!cd                     gbeta+    gamma induced positron production
+!cd                     bscat     electron scattering (electroatomic)
+!cd                     cscat     positron scattering (electroatomic)
+!cd                     bgamma    electron induced gamma production
+!cd                     cgamma    positron induced gamma production
 !cd                     pn        proton induced neutron production
 !cd                       .          .
 !cd                       .          .
@@ -461,7 +471,9 @@ contains
    ngen6=0
    ngen7=0
    ngen8=0
-   read(nsysi,*) ngen1,ngen2,nmatx,ngen3,ngen4,ngen5,ngen6,ngen7,ngen8
+   ngen9=0
+   read(nsysi,*) ngen1,ngen2,nmatx,ngen3,ngen4,ngen5,ngen6,ngen7,&
+   ngen8,ngen9
    write(nsyso,'(/&
      &'' input gendf unit ..................... '',i10/&
      &'' input gamout unit .................... '',i10/&
@@ -475,6 +487,9 @@ contains
      &'' incident alpha unit .................. '',i10/&
      &'' photonuclear unit .................... '',i10)')&
      ngen3,ngen4,ngen5,ngen6,ngen7,ngen8
+   if (ngen9.ne.0) write(nsyso,'(&
+     &'' incident electron unit ............... '',i10)')&
+     ngen9
    nscrt1=10
    nscrt2=11
    nscrt3=12
@@ -491,6 +506,7 @@ contains
    call openz(ngen6,0)
    call openz(ngen7,0)
    call openz(ngen8,0)
+   call openz(ngen9,0)
    call openz(nmatx,1)
    call openz(-nscrt2,1)
    call openz(-nscrt3,1)
@@ -519,6 +535,7 @@ contains
    call closz(ngen6)
    call closz(ngen7)
    call closz(ngen8)
+   call closz(ngen9)
    call closz(-nscrt2)
    call closz(-nscrt3)
    call closz(-nscrt6)
@@ -598,7 +615,7 @@ contains
    if (nmatx.lt.0) write(-nmatx) (ha(ihfild+i),i=1,ndr),&
      (ia(ifild+ndr*mult+i-1),i=1,nir)
    if (nmatx.gt.0) then
-      write(nmatx,'('' 3d '',4x,8a8/(9a8))') (ta(ihfild+i),i=1,ndr)
+      write(nmatx,'('' 3d '',4x,8a8:/(9a8))') (ta(ihfild+i),i=1,ndr)
       write(nmatx,'(12i6)') (ia(ifild+ndr*mult+i-1),i=1,nir)
    endif
 
@@ -610,7 +627,7 @@ contains
       irec=irec+1
       if (nmatx.lt.0) write(-nmatx) (a(lout+j-1),j=1,nwds)
       if (nmatx.gt.0) write(nmatx,&
-        '('' 4d '',1p,8x,5e12.5/(6e12.5))') (a(lout+j-1),j=1,nwds)
+        '('' 4d '',1p,8x,5e12.5:/(6e12.5))') (a(lout+j-1),j=1,nwds)
       lout=lout+nwds
    enddo
 
@@ -663,7 +680,7 @@ contains
                write(-nmatx)&
                  (ha(ihvcon+i),i=1,n1d),(ia(ivcon+n1d*mult+i-1),i=1,nw)
             else if (nmatx.gt.0) then
-               write(nmatx,'('' 6d '',4x,8a8/(9a8))')&
+               write(nmatx,'('' 6d '',4x,8a8:/(9a8))')&
                  (ta(ihvcon+i),i=1,n1d)
                write(nmatx,'(12i6)') (ia(ivcon+n1d*mult+i-1),i=1,nw)
             endif
@@ -684,7 +701,7 @@ contains
                      write(-nmatx) (a(ivdat+i-1),i=1,nwds)
                   else if (nmatx.gt.0) then
                      write(nmatx,&
-                       '('' 7d '',8x,1p,5e12.5/(6e12.5))')&
+                       '('' 7d '',8x,1p,5e12.5:/(6e12.5))')&
                        (a(ivdat+i-1),i=1,nwds)
                   endif
                   nwds=0
@@ -699,7 +716,7 @@ contains
                   write(-nmatx) (a(ivdat+i-1),i=1,nwds)
                else if (nmatx.gt.0) then
                   write(nmatx,&
-                    '('' 7d '',8x,1p,5e12.5/(6e12.5))')&
+                    '('' 7d '',8x,1p,5e12.5:/(6e12.5))')&
                     (a(ivdat+i-1),i=1,nwds)
                endif
             endif
@@ -747,7 +764,7 @@ contains
                            write(-nmatx) (a(imdat+i-1),i=1,nwds)
                         else if (nmatx.gt.0) then
                            write(nmatx,&
-                             '('' 9d '',8x,1p,5e12.5/(6e12.5))')&
+                             '('' 9d '',8x,1p,5e12.5:/(6e12.5))')&
                              (a(imdat+i-1),i=1,nwds)
                         endif
                         nwds=0
@@ -762,7 +779,7 @@ contains
                         write(-nmatx) (a(imdat+i-1),i=1,nwds)
                      else if (nmatx.gt.0) then
                         write(nmatx,&
-                          '('' 9d '',8x,1p,5e12.5/(6e12.5))')&
+                          '('' 9d '',8x,1p,5e12.5:/(6e12.5))')&
                           (a(imdat+i-1),i=1,nwds)
                      endif
                   endif
@@ -775,7 +792,7 @@ contains
                      write(-nmatx) (a(icdat+i-1),i=1,nwdc)
                   else if (nmatx.gt.0) then
                      write(nmatx,&
-                       '(''10d '',8x,1p,5e12.5/(6e12.5))')&
+                       '(''10d '',8x,1p,5e12.5:/(6e12.5))')&
                        (a(icdat+i-1),i=1,nwdc)
                   endif
                endif
@@ -923,18 +940,28 @@ contains
    character(60)::strng
    integer,parameter::nbmax=2000
    real(kr)::b(nbmax)
-   real(kr)::sigz(15)
-   integer::noned(15),ntwod(15)
+   real(kr)::sigz(100)
+   integer::noned(100),ntwod(100)
    character(8)::htyp
    character(1)::hp
    character(8),parameter::hnt='n     '
    character(8),parameter::hgm='g     '
+   character(8),parameter::hbm='b     '
+   character(8),parameter::hbp='c     '
    character(8),parameter::hprot='p     '
    character(8),parameter::hdeut='d     '
    character(8),parameter::htrit='t     '
    character(8),parameter::hhe3='h     '
    character(8),parameter::halph='a     '
+   character(8),parameter::hnsct='nscat '
    character(8),parameter::hgsct='gscat '
+   character(8),parameter::hbsct='bscat '
+   character(8),parameter::hcsct='cscat '
+   character(8),parameter::hng='ng '
+   character(8),parameter::hgbm='gbeta-'
+   character(8),parameter::hgbp='gbeta+'
+   character(8),parameter::hbmg='bgamma'
+   character(8),parameter::hbpg='cgamma'
    character(8),parameter::hgg='gg '
    character(8),parameter::hnthr='ntherm'
    integer,parameter::mtt1=221
@@ -962,6 +989,7 @@ contains
    if (nin.eq.0) nin=ngen7
    if (nin.eq.0) nin=ngen8
    if (nin.eq.0) nin=ngen2
+   if (nin.eq.0) nin=ngen9
    if (nin.eq.0) call error('mtxdat','input error (nin=0)',' ')
 
    !--read head record and store groups bounds
@@ -1037,6 +1065,7 @@ contains
    if (hprt(ip1).eq.htrit) nin=ngen5
    if (hprt(ip1).eq.hhe3) nin=ngen6
    if (hprt(ip1).eq.halph) nin=ngen7
+   if ((hprt(ip1).eq.hbm).or.(hprt(ip1).eq.hbp)) nin=ngen9
    call repoz(nin)
    nscr=nscrt1
    if (nin.lt.0) nscr=-nscrt1
@@ -1046,8 +1075,15 @@ contains
    call openz(nref,1)
    mfv=3
    if (ip1.ne.ip2) mfv=0
-   if (hprt(ip2).eq.hgm.and.htyp.ne.hgg) mfv=13
-   if (hprt(ip1).eq.hgm.and.htyp.eq.hgsct) mfv=23
+   if (hprt(ip1).eq.hnt.and.htyp.eq.hnsct) mfv=3  ! neutron -> neutron
+   if (hprt(ip1).eq.hgm.and.htyp.eq.hgsct) mfv=23 ! photon -> photon
+   if (hprt(ip1).eq.hbm.and.htyp.eq.hbsct) mfv=53 ! electron -> electron
+   if (hprt(ip1).eq.hbp.and.htyp.eq.hcsct) mfv=73 ! positron -> positron
+   if (hprt(ip2).eq.hgm.and.htyp.eq.hng)  mfv=13  ! neutron -> photon
+   if (hprt(ip2).eq.hbm.and.htyp.eq.hgbm) mfv=33  ! photon -> electron
+   if (hprt(ip2).eq.hbp.and.htyp.eq.hgbp) mfv=43  ! photon -> positron
+   if (hprt(ip2).eq.hgm.and.htyp.eq.hbmg) mfv=63  ! electron -> photon
+   if (hprt(ip2).eq.hgm.and.htyp.eq.hbpg) mfv=83  ! positron -> photon
    if (mfv.ne.0) mfm=mfv+3
    if (hprt(ip2).eq.hnt) mfm=6
    if (hprt(ip2).eq.hprot) mfm=21
@@ -1188,8 +1224,8 @@ contains
 
    !--no data found
    write(strng,&
-     '(''no data for itype='',i2,'' mat='',i4,'' itemp='',i1)')&
-     i,imat,itemp
+     '(''no data for htype='',a8,'' mat='',i4,'' itemp='',i1)')&
+     htype(i),imat,itemp
    call mess('mtxdat',strng,' ')
 
    !--label what we are now doing
@@ -1376,7 +1412,28 @@ contains
    character(6),dimension(10),parameter::h6=(/&
      'stop  ','gcoh  ','ginch ','gpaire','gpair ','gpairn',&
      'gabs  ','gheat ','gabs  ','gheat '/)
-   integer,parameter::num7=19
+   integer,parameter::num7=46
+   integer,dimension(num7),parameter::i7=(/&
+     507,508,522,525,527,534,535,536,537,538,539,540,541,542,543,544,&
+     545,546,547,548,549,550,551,552,553,554,555,556,557,558,559,560,&
+     561,562,563,564,565,566,567,568,569,570,571,572,530,531/)
+   character(6),dimension(num7),parameter::h7b=(/&
+     'bstc  ','bstr  ','binch ','belas ','bbrem ','bshk1 ','bshl1 ', &
+     'bshl2 ','bshl3 ','bshm1 ','bshm2 ','bshm3 ','bshm4 ','bshm5 ', &
+     'bshn1 ','bshn2 ','bshn3 ','bshn4 ','bshn5 ','bshn6 ','bshn7 ', &
+     'bsho1 ','bsho2 ','bsho3 ','bsho4 ','bsho5 ','bsho6 ','bsho7 ', &
+     'bsho8 ','bsho9 ','bshp1 ','bshp2 ','bshp3 ','bshp4 ','bshp5 ', &
+     'bshp6 ','bshp7 ','bshp8 ','bshp9 ','bshp10','bshp11','bshq1 ', &
+     'bshq2 ','bshq3 ','bheat ','bchar '/)
+   character(6),dimension(num7),parameter::h7c=(/&
+     'cstc  ','cstr  ','cinch ','celas ','cbrem ','cshk1 ','cshl1 ', &
+     'cshl2 ','cshl3 ','cshm1 ','cshm2 ','cshm3 ','cshm4 ','cshm5 ', &
+     'cshn1 ','cshn2 ','cshn3 ','cshn4 ','cshn5 ','cshn6 ','cshn7 ', &
+     'csho1 ','csho2 ','csho3 ','csho4 ','csho5 ','csho6 ','csho7 ', &
+     'csho8 ','csho9 ','cshp1 ','cshp2 ','cshp3 ','cshp4 ','cshp5 ', &
+     'cshp6 ','cshp7 ','cshp8 ','cshp9 ','cshp10','cshp11','cshq1 ', &
+     'cshq2 ','cshq3 ','cheat ','cchar '/)
+   integer,parameter::num8=19
    integer,dimension(19),parameter::ilr=(/&
      31,16,17,22,23,24,25,26,28,29,30,32,33,34,35,36,37,39,40/)
    character(3),dimension(19),parameter::hlr=(/&
@@ -1439,7 +1496,7 @@ contains
 
    !--miscellaneous quantities
   200 continue
-   if (mt.gt.499) go to 250
+   if (mt.gt.499) go to 230
    do 210 i=1,num5
    jmt=i
    if (mt.eq.i5(i)) go to 220
@@ -1449,17 +1506,39 @@ contains
    write(strng,'(a6)') h5(jmt)
    go to 350
 
-   !--photon interactions
-  250 continue
+   !--particle-emitting levels
+  230 continue
    if (iverf.le.5.and.mt.gt.699) go to 280
    if (iverf.ge.6.and.mt.gt.599) go to 290
-   do 260 i=1,num6
-   jmt=i
-   if (mt.eq.i6(i)) go to 270
-  260 continue
+
+   !--photon interactions
+   if (hp.eq.'g') then
+      do 240 i=1,num6
+      jmt=i
+      if (mt.eq.i6(i)) go to 260
+     240 continue
+
+   !--electrons interactions
+   else if (hp.eq.'b') then
+      do 250 i=1,num7
+      jmt=i
+      if (mt.eq.i7(i)) go to 270
+     250 continue
+   else if (hp.eq.'c') then
+      do 255 i=1,num7
+      jmt=i
+      if (mt.eq.i7(i)) go to 275
+     255 continue
+   endif
    go to 300
-  270 continue
+  260 continue
    write(strng,'(a6)') h6(jmt)
+   go to 350
+  270 continue
+   write(strng,'(a6)') h7b(jmt)
+   go to 350
+  275 continue
+   write(strng,'(a6)') h7c(jmt)
    go to 350
 
    !--particle-emitting levels (endf-5)
@@ -1512,7 +1591,7 @@ contains
    !--encode lr flag into name
   310 if (lr.eq.0) go to 350
    temp=strng(1:3)
-   do 320 i=1,num7
+   do 320 i=1,num8
    jlr=i
    if (lr.eq.ilr(i)) go to 330
   320 continue
@@ -1551,17 +1630,24 @@ contains
    integer::izam,nl,nz,matr,mfr,mtr,loc,jg2,lout,lin
    integer::j,k,mdex,ivnow,nb,nw,ltot,ng2,n1j,nmove
    integer::ndex,nfg,nlg,nxsd,n,ihvcon
+   integer::ningp1
+   logical::lelectr
    integer,parameter::maxb=30000
    real(kr)::b(maxb)
    character(8)::hchid='chid'
-   character(8)::hgtot='gtot0'
-   character(8)::hgflx='gwt0'
+   character(4)::htot='tot0'
+   character(4)::hflx='wt0'
    character(8)::hnt='n'
    character(8)::hga='g'
+   character(8)::hba='b'
+   character(8)::hca='c'
    real(kr),parameter::stol=1.e-3_kr
    real(kr),parameter::small=1.e-30_kr
 
    !--initialize.
+   lelectr=(hp.eq.hba).or.(hp.eq.hca)
+   ningp1=ning
+   if (lelectr) ningp1=ning+1
    k004=0
    k016=0
    k103=0
@@ -1575,7 +1661,7 @@ contains
    nwds=((nwds-1)/2+1)*2
    ivcon=next
    next=ivcon+nwds
-   nwds=ning*n1d
+   nwds=ningp1*n1d
    ivdat=next
    next=ivdat+nwds
    do i=ivcon,isiza
@@ -1591,7 +1677,12 @@ contains
 
    !--set up next reaction
   115 continue
-   if (ig.lt.ning) go to 155
+   if (lelectr.and.((mth.eq.507).or.((mth.eq.508)))) then
+      ! stopping power
+      if (ig.lt.ning+1) go to 155
+   else
+      if (ig.lt.ning) go to 155
+   endif
    call contio(nscr,0,0,b(1),nb,nw)
    if (math.le.0) go to 400
    if (mfh.eq.0.or.mth.eq.0) go to 115
@@ -1620,8 +1711,8 @@ contains
    n1i=n1i+2*ltot
    go to 140
   130 continue
-   hvps(1)=hgflx
-   hvps(2)=hgtot
+   hvps(n1i+1)=hp//hflx
+   hvps(n1i+2)=hp//htot
    n1i=n1i+2
    go to 140
   134 continue
@@ -1687,8 +1778,8 @@ contains
    ng2=l1h
    ig2lo=l2h
    do i=2,ng2
-      jg2=noutg+1-ig2lo-i+2
-      lout=ivdat-1+(n1i-1)*ning+jg2
+      jg2=noutg+1-ig2lo-i+2+ningp1-ning
+      lout=ivdat-1+(n1i-1)*ningp1+jg2
       lin=lz+nl*(i-1)
       do j=1,nl
          a(lout)=b(j+lin)+a(lout)
@@ -1701,11 +1792,12 @@ contains
    if (mth.eq.1.or.mth.eq.501) go to 320
    if (mth.eq.2.and.hp.ne.hnt) go to 350
    if (iref.ne.0.and.ig.gt.igr) go to 310
-   lout=ivdat+n1i*ning-ig
+   lout=ivdat+n1i*ningp1-ig
    lin=lz+nl*(nz+iz-1)+1
    a(lout)=b(lin)
    if (hp.eq.hnt) go to 310
    if (hp.eq.hga) go to 310
+   if (lelectr) go to 310
    if (mth.eq.500) go to 310
    if (mth.ge.201.and.mth.le.207) go to 310
    if (mth.eq.4) k004=1
@@ -1722,12 +1814,12 @@ contains
    if (k107.eq.1.and.mth.ge.800.and.mth.le.849) go to 310
    if (mth.eq.16) k016=1
    if (k016.eq.1.and.mth.ge.875.and.mth.le.891) go to 310
-   lout=ivdat+2*ning-ig
+   lout=ivdat+2*ningp1-ig
    a(lout)=a(lout)+b(lin)
   310 continue
    if (iref.eq.0) go to 115
    if (igr.gt.ig) go to 115
-   lout=ivdat+n1i*ning-igr
+   lout=ivdat+n1i*ningp1-igr
    lin=idref-1+lz+nl*nz+1
    a(lout)=a(lout)-b(lin)
    if (abs(a(lout)).lt.stol*b(lin)) a(lout)=0
@@ -1736,17 +1828,17 @@ contains
   320 continue
    do il=1,nl
       ! flux
-      lout=ivdat+il*ning-ig
+      lout=ivdat+(n1i-2*nl+il)*ningp1-ig
       lin=lz+nl*(iz-1)+il
       a(lout)=b(lin)
       ! total cross sections
       if (iref.eq.0.or.ig.le.igr) then
-         lout=ivdat+(nl+il)*ning-ig
+         lout=ivdat+(n1i-nl+il)*ningp1-ig
          lin=lz+nz*nl+nl*(iz-1)+il
          a(lout)=b(lin)
       endif
       if (iref.ne.0.and.igr.le.ig) then
-         lout=ivdat+(nl+il)*ning-igr
+         lout=ivdat+(n1i-nl+il)*ningp1-igr
          lin=idref-1+lz+nz*nl+il
          a(lout)=a(lout)-b(lin)
          if (abs(a(lout)).ge.stol*b(lin)) igw=1
@@ -1756,13 +1848,13 @@ contains
    go to 115
    ! charged-particle elastic and flux
   350 continue
-   lout=ivdat+ning-ig
+   lout=ivdat+ningp1-ig
    lin=lz+nl*(iz-1)+1
    a(lout)=b(lin)
-   lout=lout+ning
+   lout=lout+ningp1
    lin=lin+nl*nz
    a(lout)=b(lin)
-   lout=lout+ning
+   lout=lout+ningp1
    a(lout)=b(lin)
    go to 115
   400 continue
@@ -1778,16 +1870,16 @@ contains
   430 continue
    go to 480
   440 continue
-   do k=1,ning
-      lout=ivdat+n1j*ning-k
-      lin=ivdat+n1i*ning-k
+   do k=1,ningp1
+      lout=ivdat+n1j*ningp1-k
+      lin=ivdat+n1i*ningp1-k
       a(lout)=a(lout)+a(lin)
    enddo
    if (n1i.ne.n1d) then
-      nmove=(n1d-n1i)*ning
+      nmove=(n1d-n1i)*ningp1
       do k=1,nmove
-         lout=ivdat+(n1i-1)*ning+k-1
-         lin=ivdat+n1i*ning+k-1
+         lout=ivdat+(n1i-1)*ningp1+k-1
+         lin=ivdat+n1i*ningp1+k-1
          a(lout)=a(lin)
       enddo
       nmove=n1d-n1i
@@ -1805,9 +1897,9 @@ contains
    do i=1,n1d
 
       !--calculate nfg and nlg
-      nfg=ning+1
+      nfg=ningp1+1
       nlg=0
-      do k=1,ning
+      do k=1,ningp1
          nxsd=ndex-1+k
          if (abs(a(nxsd)).ge.small) then
             if (nfg.gt.k) nfg=k
@@ -1817,12 +1909,12 @@ contains
 
       !--if entire partial is zero, keep group 1 only
       if (nlg.eq.0) then
-         nfg=1
-         nlg=1
+         nfg=1+ningp1-ning
+         nlg=1+ningp1-ning
       endif
 
       !--crunch data using nfg and nlg
-      do k=1,ning
+      do k=1,ningp1
          if (nfg.le.k.and.nlg.ge.k) then
             a(mdex)=a(ndex)
             mdex=mdex+1
@@ -1833,8 +1925,13 @@ contains
       !--write vector control data
       n=(ivcon-1)/mult+i
       read(hvps(i),'(a8)') ta(n)
-      ia(ivcon+n1d*mult-1+i)=nfg
-      ia(ivcon+n1d*mult+n1d-1+i)=nlg
+      if(lelectr.and.(hvps(i)(2:3).eq.'st')) then
+         ia(ivcon+n1d*mult-1+i)=nfg
+         ia(ivcon+n1d*mult+n1d-1+i)=nlg
+      else
+         ia(ivcon+n1d*mult-1+i)=nfg-ningp1+ning
+         ia(ivcon+n1d*mult+n1d-1+i)=nlg-ningp1+ning
+      endif
    enddo
 
    !--write vector blocks to nscrt3

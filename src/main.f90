@@ -31,6 +31,9 @@ program njoy
 ! groupr...generate self-shielded multigroup cross sections and
 !          group-to-group scattering and photon production matrices.
 !
+! electr...compute multigroup electron interaction cross sections,
+!          scattering matrices, energy and charge deposition.
+!
 ! gaminr...compute multigroup photon interaction cross sections,
 !          scattering matrices, and heat production.
 !
@@ -124,6 +127,7 @@ program njoy
    use heatm   ! provides heatr
    use thermm  ! provides thermr
    use groupm  ! provides groupr
+   use electm  ! provides electr
    use gaminm  ! provides gaminr
    use errorm  ! provides errorr
    use covm    ! provides covr
@@ -213,6 +217,9 @@ program njoy
 
       case('groupr')  ! compute self-shielded multigroup cross sections
          call groupr
+
+      case('electr') ! compute electron interaction cross sections
+         call electr
 
       case('gaminr') ! compute gamma interaction cross sections.
          call gaminr

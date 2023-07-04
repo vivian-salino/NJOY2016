@@ -129,6 +129,7 @@ contains
    !----
    !  check if iutype is valid
    !----
+   kdropn=-9999
    if((iutype>4).or.(iutype<1)) then
      kdropn=-5
      return
@@ -224,7 +225,8 @@ contains
    kdropn=-1
    return
    !
-   121 if(iutype==1) then
+   121 lrda2=0
+   if(iutype==1) then
       !----
       !  open kdi file
       !----

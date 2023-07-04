@@ -15,8 +15,9 @@ module gaminm
    integer::matb,lord
    integer::nendf,npend
    integer::ngam1,ngam2,ntw
-   character(17)::title(17)
+   character(4)::title(17)
    integer::matd,mfd,mtd
+   integer::iverf
    integer::ig2pp
    integer::iprint
 
@@ -51,6 +52,10 @@ contains
    ! card3
    !    title   run label up to 80 characters (delimited by ',
    !            ended with /)
+   ! card4      (igg=-2 or -1 only)
+   !    ngg     number of photon groups
+   !    emin    minimum energy bound (ev)
+   !    emax    maximum energy bound (ev)
    ! card4      (igg=1 only)
    !    ngg     number of groups
    !    egg     ngg+1 group bounds (ev)
@@ -72,6 +77,8 @@ contains
    !
    !        igg     meaning
    !        ---     -------
+   !        -2      uniform logarithmic group structure
+   !        -1      uniform linear group structure
    !         0      none
    !         1      arbitrary structure (read in)
    !         2      csewg 94-group structure
@@ -335,7 +342,8 @@ contains
    enddo
    idone=0
    do while (idone.eq.0)
-      call gpanel(elo,enext,ans,ff,nl,nz,ng2,ig2lo,sdat,pff,nwpff)
+      call gpanel(elo,enext,ans,ff,nl,nz,ng2,ig2lo,sdat,pff,nwpff,&
+      gtff)
       if (enext.eq.ehi) then
          idone=1
       else
@@ -589,6 +597,8 @@ contains
    !
    !    igg     meaning
    !    ---     --------------------------------------
+   !    -2      uniform logarithmic group structure
+   !    -1      uniform linear group structure
    !     0      none
    !     1      arbitrary structure (read in)
    !     2      csewg 94-group structure
@@ -606,6 +616,7 @@ contains
    use util   ! provides error
    ! internals
    integer::ig,ngm,i,ngp
+   real(kr)::delta,emin,emax
    real(kr),dimension(95),parameter::eg2=(/&
      .005e0_kr,.01e0_kr,.015e0_kr,.02e0_kr,.03e0_kr,.035e0_kr,&
      .04e0_kr,.045e0_kr,.055e0_kr,.06e0_kr,.065e0_kr,.075e0_kr,&
@@ -671,8 +682,31 @@ contains
    egg(1)=0
    if (igg.eq.0) return
 
+   !--uniform logarithmic group structure.
+   if (igg.eq.-2) then
+      read(nsysi,*) ngg,emin,emax
+      ngp=ngg+1
+      if (ngp.gt.ngmax) call error('genggp','too many groups.',' ')
+      delta = log(emax/emin)/real(ngg)
+      egg(1) = emin
+      do ig=2,ngp
+         egg(ig) = exp(log(egg(ig-1)) + delta)
+      enddo
+
+   !--uniform linear group structure.
+   else if (igg.eq.-1) then
+      read(nsysi,*) ngg,emin,emax
+      ngp=ngg+1
+      if (ngp.gt.ngmax) call error('genggp','too many groups.',' ')
+      delta = (emax - emin)/real(ngg)
+      egg(1) = emin
+      do ig = 2,ngp
+         egg(ig) = egg(ig-1) + delta
+      enddo
+
    !--group structure is read in.
-   if (igg.eq.1) then
+   else if (igg.eq.1) then
+
       read(nsysi,*) ngg
       ngp=ngg+1
       if (ngp.gt.ngmax) call error('genggp','too many groups.',' ')
@@ -871,7 +905,8 @@ contains
    return
    end subroutine gtflx
 
-   subroutine gpanel(elo,ehi,ans,ff,nl,nz,ng,iglo,sdat,pff,nwpff)
+   subroutine gpanel(elo,ehi,ans,ff,nl,nz,ng,iglo,sdat,pff,nwpff, &
+   ggtff)
    !------------------------------------------------------------------
    ! Perform generalized group constant integrals for one panel.
    ! The upper boundry of the panel is chosen to be the smallest
@@ -882,7 +917,14 @@ contains
    use util ! provides error
    ! externals
    integer::nl,nz,ng,iglo,nwpff
-   real(kr)::elo,ehi,ans(nl,nz,*),ff(nl,*),sdat(*),pff(nwpff)
+   real(kr)::elo,ehi,ans(nl,nz,*),ff(nl,2),sdat(*),pff(nwpff)
+   interface
+      subroutine ggtff(e,enext,idisc,ff,nl,ng,iglo,nq,pff,nwpff)
+         use locale
+         integer::idisc,nl,ng,iglo,nq,nwpff
+         real(kr)::e,enext,pff(nwpff),ff(nl,2)
+      end subroutine ggtff
+   end interface
    ! internals
    integer::idiscf,ng1,ig1,nq,iz,il,iq,nqp,ig,igt
    real(kr)::en,ehigh,aq,bq,eq,wq,t1,a,b,rr,enext
@@ -920,7 +962,7 @@ contains
       if (en.eq.enext.and.idiscf.gt.idisc) idisc=idiscf
       if (en.lt.enext) idisc=idiscf
       if (en.lt.enext) enext=en
-      call gtff(elo,en,idiscf,ff,nl,ng1,ig1,nq,pff,nwpff)
+      call ggtff(elo,en,idiscf,ff,nl,ng1,ig1,nq,pff,nwpff)
       if (en.eq.enext.and.idiscf.gt.idisc) idisc=idiscf
       if (en.lt.enext) idisc=idiscf
       if (en.lt.enext) enext=en
@@ -969,7 +1011,7 @@ contains
       !--first point was last point of previous panel.
       if (iq.gt.1) then
          if (eq.gt.ehigh) eq=ehigh
-         call gtff(eq,en,idiscf,ff,nl,ng1,ig1,nqp,pff,nwpff)
+         call ggtff(eq,en,idiscf,ff,nl,ng1,ig1,nqp,pff,nwpff)
       endif
 
       !--accumulate the ng*nl*nz integrals simultaneously.
@@ -1169,7 +1211,9 @@ contains
    use physics ! provides electron mass
    ! externals
    integer::idisc,nl,ng,iglo,nq,nwpff
-   real(kr)::e,enext,ff(nl,*),pff(nwpff)
+   integer::imtd(2)
+   integer,save::ipff(2)
+   real(kr)::e,enext,ff(nl,2),pff(nwpff)
    ! internals
    integer::igp,il,ip,idis,idone,ig,ifini,i,ir,iq,l
    integer::lim,j,nb,nw
@@ -1249,6 +1293,23 @@ contains
                if (mtd.eq.504) ng=ngg+2
                enext=emax
                idisc=0
+               if ((mtd.eq.502).and.(iverf.ge.6)) then
+                  imtd = (/ 505, 506 /)
+                  do i=1,2
+                     l=l+1
+                     ipff(i)=l
+                     mth=imtd(i)
+                     call contio(nendf,0,0,pff(l),nb,nw)
+                     call tab1io(nendf,0,0,pff(l),nb,nw)
+                     l=l+nw
+                     do while (nb.ne.0)
+                       if (l.gt.nwpff) call error('gtff',&
+                       'insufficient storage for anomalous factor.',' ')
+                       call moreio(nendf,0,0,pff(l),nb,nw)
+                       l=l+nw
+                     enddo
+                  enddo
+               endif
                return
             endif
          endif

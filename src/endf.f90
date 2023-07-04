@@ -1582,7 +1582,8 @@ contains
    400 continue
    write(strng,'('' mat'',i4,'' mf'',i2,'' mt'',i3,&
      &'' not on tape '',i3)') mat,mf,mt,itape
-   call error('findf',strng,' ')
+   call mess('findf',strng,' ')
+   mat=-1
    return
    end subroutine findf
 
