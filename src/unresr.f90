@@ -595,7 +595,7 @@ contains
    if (enow.lt.eh) then
       write(strng,&
         '(''between'',1p,e12.4,'' and'',1p,e12.4,'' eV'')') enow, eh
-      call error('rdunf2','energy dependent data undefined',strng)
+      call mess('rdunf2','energy dependent data are undefined',strng)
    endif
    ! loop over l states
    do l=1,nls
@@ -683,7 +683,7 @@ contains
          if (enow.lt.eh) then
             write(strng,&
               '(''between'',1p,e12.4,'' and'',1p,e12.4,'' eV'')') enow, eh
-            call error('rdunf2','energy dependent data undefined',strng)
+            call mess('rdunf2','energy dependent data are undefined',strng)
          endif
       enddo
    enddo

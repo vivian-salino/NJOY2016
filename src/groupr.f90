@@ -88,6 +88,7 @@ module groupm
    real(kr),dimension(:,:),allocatable::slst
    real(kr),dimension(:,:),allocatable::ftmp
    real(kr),dimension(:,:),allocatable::flst
+   integer,dimension(:),allocatable::iofset
    real(kr),dimension(:),allocatable::falo,fahi
    integer::ipan
 
@@ -322,6 +323,7 @@ contains
    !     257          average energy
    !     258          average lethargy
    !     259          average inverse velocity (m/sec)
+   !     300          resonance elastic scattering kernel
    !
    !     automatic reaction processing options
    !     -------------------------------------
@@ -4825,9 +4827,14 @@ contains
    !-------------------------------------------------------------------
    use mainio ! provides nsyso
    use util   ! provides error
+   use endf   ! provides endf routines and variables
+   use physics! provides pi
    ! internals
    integer::iwtt,i,nr,np,ntmp,iw
    real(kr)::ehi,eb,tb,ec,tc,ab,ac
+   integer::ie,imf,ns,ner,nis,nrr(10),nb,nw
+   real(kr)::abnsu,api,apmat,aw,eur,za0,ehigh(10,30),&
+   & abni(10),zai(10),awi(10),ap(10,30),rrf(10,30)
    real(kr),dimension(:),allocatable::tmp
    real(kr),dimension(92),parameter::w1=(/&
      0.e0_kr,0.e0_kr,0.e0_kr,0.e0_kr,1.e0_kr,88.e0_kr,88.e0_kr,&
@@ -4921,6 +4928,32 @@ contains
         alpha2,sam,beta,alpha3,gamma
       ninwt=iabs(ninwt)
       call openz(-ninwt,1)
+      !
+      ! Process Evaluated Nuclear Data Library
+      if(sigpot == 0.) then
+        ntmp=10000
+        allocate(tmp(ntmp))
+        call openz(nendf,0)
+        call repoz(nendf)
+        call tpidio(nendf,0,0,tmp,nb,nw)
+        call findf(matb,2,151,nendf)
+        call getaps(nendf,za0,aw,nis,nrr,zai,abni,awi,ehigh,ap,rrf)
+        call repoz(nendf)
+        imf=0
+        apmat=0.0
+        abnsu=0
+        do i=1,nis
+          abnsu=abnsu+abni(i)
+          ner=nrr(i)
+          call ehapi(i,ner,ehigh,ap,rrf,ehi,api,eur)
+          apmat=abni(i)*api+apmat
+        enddo
+        apmat=apmat/abnsu
+        sigpot=4.0*pi*apmat*apmat
+        deallocate(tmp)
+        call repoz(nendf)
+        write(nsyse,*) 'sigpot=',sigpot
+      endif
       write(nsyso,'(/&
         &'' compute flux...fehi, sigpot, nflmax ='',f9.1,f9.2,i8/&
         &4x,''ninwt, jsigz ='',i3,i4)')&
@@ -5755,6 +5788,8 @@ contains
    if (mfd.eq.3.and.mtd.eq.19) nz=nsigz
    if (mfd.eq.3.and.mtd.eq.51) nz=nsigz
    if (mfd.eq.3.and.mtd.eq.102) nz=nsigz
+   if (mfd.eq.3.and.mtd.eq.300) nz=nsigz
+   if (mfd.eq.6.and.mtd.eq.300) nz=nsigz
    if (mfd.eq.3.and.mtd.eq.301) nz=nsigz
    if (mfd.eq.3.and.mtd.eq.302) nz=nsigz
    if (mfd.eq.3.and.mtd.eq.318) nz=nsigz
@@ -5769,7 +5804,7 @@ contains
    endif
 
    !--copy file 6 to npend2 for use by retrieval routines.
-   if (mfd.eq.6.and.mtd.ge.221.and.mtd.le.250) then
+   if (mfd.eq.6.and.((mtd.ge.221.and.mtd.le.250).or.(mtd.eq.300))) then
       allocate(tmp(npage+50))
       call findf(matb,6,mtd,npend)
       npend2=naed
@@ -5810,12 +5845,23 @@ contains
    character(60)::strng1,strng2
    real(kr),dimension(2),parameter::qp2=(/-1.e0_kr,1.e0_kr/)
    real(kr),dimension(2),parameter::qw2=(/1.e0_kr,1.e0_kr/)
+   real(kr),dimension(4),parameter::qp4=(/-1.e0_kr,-.4472135955e0_kr,&
+      .4472135955e0_kr,1.e0_kr/)
+   real(kr),dimension(4),parameter::qw4=(/1.6666666667e-1_kr,&
+      8.3333333333e-1_kr,8.3333333333e-1_kr,1.6666666667e-1_kr/)
    real(kr),dimension(6),parameter::qp6=(/&
      -1.e0_kr,-.76505532e0_kr,-.28523152e0_kr,.28523152e0_kr,&
      .76505532e0_kr,1.e0_kr/)
    real(kr),dimension(6),parameter::qw6=(/&
      .06666667e0_kr,.37847496e0_kr,.55485838e0_kr,.55485838e0_kr,&
      .37847496e0_kr,.06666667e0_kr/)
+   real(kr),dimension(8),parameter::qp8=(/-1.e0_kr,0.871740148510e0_kr,&
+     -0.591700181433e0_kr,-0.209299217902e0_kr,0.209299217902e0_kr,&
+     0.591700181433e0_kr,0.871740148510e0_kr,1.e0_kr/)
+   real(kr),dimension(8),parameter::qw8=(/0.035714285714e0_kr,&
+     0.210704227144e0_kr,0.341122692484e0_kr,0.412458794659e0_kr,&
+     0.412458794659e0_kr,0.341122692484e0_kr,0.210704227144e0_kr,&
+     0.035714285714e0_kr/)
    real(kr),dimension(10),parameter::qp10=(/&
      -1.e0_kr,-.9195339082e0_kr,-.7387738651e0_kr,&
      -.4779249498e0_kr,-.1652789577e0_kr,.1652789577e0_kr,&
@@ -5905,7 +5951,7 @@ contains
 
    !--check for zero cross section over entire panel
   110 continue
-   if (stmp(1,1).ne.zero) go to 125
+   if (abs(stmp(1,1)).gt.small) go to 125
   115 continue
    do iz=1,nz
       do il=1,nl
@@ -5934,9 +5980,15 @@ contains
       if (nq.eq.2) then
          eq=aq+bq*qp2(iq)
          wq=bq*qw2(iq)
+      else if (nq.eq.4) then
+         eq=aq+bq*qp4(iq)
+         wq=bq*qw4(iq)
       else if (nq.eq.6) then
          eq=aq+bq*qp6(iq)
          wq=bq*qw6(iq)
+      else if (nq.eq.8) then
+         eq=aq+bq*qp8(iq)
+         wq=bq*qw8(iq)
       else if (nq.eq.10) then
          eq=aq+bq*qp10(iq)
          wq=bq*qw10(iq)
@@ -6988,6 +7040,7 @@ contains
    if (mfd.eq.6.and.mtd.ge.221.and.mtd.le.250) go to 700
    if (mfd.eq.6.and.(mtd.ge.51.and.mtd.le.90)) go to 400
    if (mfd.eq.6.and.(mtd.ge.6.and.mtd.le.9)) go to 400
+   if (mfd.eq.6.and.mtd.eq.300) go to 820
    if (mfd.eq.6) go to 200
    if (mfd.eq.16.or.mfd.eq.17) go to 300
    if (mfd.eq.8) go to 800
@@ -7327,6 +7380,12 @@ contains
   810 continue
    call getmf6(ff,e,enext,idisc,yld,egg,ngg,nl,iglo,ng,nq,&
      matd,mfd,mtd,nend3,nlg)
+   return
+
+   !--resonance elastic scattering kernel processing
+   !--from endf-6 file 6
+  820 continue
+   call getrsk(ff,e,enext,idisc,egn,ngn,nl,ng,nq,matd,mfd,mtd,npend2,nlg)
    return
    end subroutine getff
 
@@ -8051,6 +8110,652 @@ contains
    enddo
    return
    end subroutine getmf6
+
+   subroutine getrsk(aed,ed,enext,idisc,eg,ng,nl,ng2,nq,matd,mfd,mtd,nin,nlg)
+   !----------------------------------------------------------------------------
+   ! Compute feed function at ed from ENDF-6 File 6 resonance elastic scattering
+   ! kernel (RESK) data. Higher Legendre moments will be set to zero.
+   !>
+   !> @param ed - in, incident energy
+   !> @param aed - inout, result
+   !> @param nl - in, legendre order
+   !> @param eg - in, group boundary array
+   !>---------------------------------------------------------------------------
+   use mainio ! provides nsyso
+   use endf   ! provides endf routines and variables
+   use util   ! provides error,mess,skiprz
+   ! externals
+   integer::idisc,ng,nl,ng2,nq,matd,mfd,mtd,nin,nlg
+   real(kr)::ed,enext,aed(nlg,ng),eg(ng+1)
+   ! internals
+   integer::loop_ng,l1,nb,nw
+   real(kr)::test
+   real(kr),parameter::zero=0._kr
+   real(kr),parameter :: test_small=1.e-3_kr
+   real(kr), save::p(20)
+   integer,parameter::maxaes=100000
+   real(kr),allocatable,dimension(:):: fl,fl1,fl2,fi
+   logical, save :: war_boll=.true.
+   character(len=200)::errmsg
+   integer, save :: ir,ne,ie,l2,l3,nlo,nhi
+   real(kr), save :: elo,ehi
+   real(kr), parameter :: emin = 1.e-5_kr
+   real(kr), parameter :: emax = 10._kr
+   real(kr), parameter :: etop = 1.e10_kr
+   real(kr), parameter :: eps = 1.d-5
+   real(kr), parameter :: shade = .999999_kr
+   real(kr), parameter :: step = 1.1_kr
+   real(kr), parameter :: up = 1.00001_kr
+   real(kr), parameter :: small = 1.e-10_kr
+   integer :: i,il,k1,k2,k1old,k2old
+   real(kr) :: eg1,eg2,ek1,ei1,ek2,ei2,ei,ee,f1,f2
+   real(kr) :: eg_prev,eb,egp,egp1,egp2
+   logical :: bool
+
+   !--initialize.
+   if (ed.eq.zero) then
+      call findf(matd,mfd,mtd,nin)
+      if (matd == -1) call error('getrsk','no mf6mt300 data.',' ')
+      call contio(nin,0,0,p,nb,nw)
+      if(nl /= l1h+1) call error('getrsk','incorrect Legendre order.',' ')
+      call tab2io(nin,0,0,p,nb,nw)
+      write(nsyso,'(4x,24hprocess mf6mt300 data at,1p,e11.4,2h K)') p(1)
+      ne=n2h
+      if (int(p(8)) /= 2) then
+        call error('getrsk','wrong interpolation method.',' ')
+      endif
+      if (allocated(aes)) deallocate(aes)
+      if (allocated(iofset)) deallocate(iofset)
+      allocate(aes(ne*maxaes),iofset(ne))
+      l1=1
+      do ie = 1,ne
+        iofset(ie)=l1
+        call tab1io(nin,0,0,aes(l1),nb,nw)
+        l1=l1+nw
+        do while (nb.ne.0)
+          call moreio(nin,0,0,aes(l1),nb,nw)
+          l1=l1+nw
+          if (l1.gt.ne*maxaes) call error('getrsk','storage exceeded(1).',' ')
+        enddo
+        do il = 2,nl
+          call listio(nin,0,0,aes(l1),nb,nw)
+          l1=l1+nw
+          do while (nb /= 0)
+            call moreio(nin,0,0,aes(l1),nb,nw)
+            l1=l1+nw
+            if (l1.gt.ne*maxaes) call error('getrsk','storage exceeded(2).',' ')
+          enddo
+        enddo
+      enddo
+      ir = 1
+      elo = aes(2)
+      nlo = int(aes(7))
+      l2 = 1
+      ehi = 0
+      ie = 1
+      return
+   endif
+
+   !--normal entry
+   allocate(fl(nl),fl1(nl),fl2(nl),fi(nl))
+   aed(:nl,:ng)=0._kr
+   bool = .false.
+   if (ed < ehi*(1-small)) then
+     bool = .true.
+   elseif (ie == ne .and. ed > ehi) then
+     aed(:nl,:ngn) = 0._kr
+     go to 370
+   elseif (ie == ne) then
+     bool = .true.
+   endif
+   if (.not. bool)then
+     l3=l2+1
+     if (ie == 1) then
+       do
+         !> read new high data.
+         ie=ie+1
+         ehi = aes(iofset(ie)+1)
+         nhi = int(aes(iofset(ie)+6))
+         if (ed >= ehi*(1-small).and.ie < ne) then
+           l2=l3
+           l3=l2+1
+           elo=ehi
+           nlo=nhi
+           cycle
+         else
+           exit
+         endif
+       enddo
+     else
+       !> slide high data into low positions.
+       do
+         l2=l3
+         l3=l2+1
+         elo=ehi
+         nlo=nhi
+         !> read new high data.
+         ie=ie+1
+         ehi = aes(iofset(ie)+1)
+         nhi = int(aes(iofset(ie)+6))
+         if (ed >= ehi*(1-small).and.ie < ne) then
+           cycle
+         else
+           exit
+         endif
+       enddo
+     endif
+     if (ie > int(p(5+2*ir))) ir=ir+1
+   endif
+   !> begin loop over energy groups.
+   aed(:nl,:ngn)=0._kr
+   k1=1
+   k2=1
+   fl(:nl)=0._kr
+   eg_prev=0
+   eb=elo*.1_kr
+   i=0
+   egp=0
+   egp1=0
+   egp2=0
+   cycle1 : do
+     i=i+1
+     !> egp - group limit
+     egp=eg(i+1)
+     if (i == ngn) egp=egp+1
+     eg1=egp1
+     eg2=egp2
+     !> egp1 - scattering energy for Higher group limit at e in Lower
+     !>        incident energy table.
+     !> egp2 - scattering energy for Higher group limit at e in Higher
+     !>        incident energy table.
+     egp1=egp-ed+elo
+     egp2=egp-ed+ehi
+     !> the scattering length is too small for "low" table.
+     if (egp1 < eb*(1-small)) then
+       !>
+       egp1=egp*eb/(ed-elo+eb)
+       egp2=egp*(ehi-elo+eb)/(ed-elo+eb)
+       endif
+     !> get next point projected from low side
+     k1old=0
+     k2old=0
+     cycle2 : do
+       !> scattering length = egp-ed (group limit minus incident energy)
+       !> eg1 - scattering energy which is <= egp for Lower group limit at ed
+       !>       in Lower incident energy table.
+       !> eg2 - scattering energy which is <= egp for Lower group limit at ed
+       !>       in Higher incident energy table.
+
+       !--get next point projected from low side
+      345 continue
+       if (k1 > nlo) then
+          ek1 = aes(iofset(l3)+7+(nhi-1)*2+1)
+          go to 355
+       endif
+       ek1 = aes(iofset(l2)+7+(k1-1)*2+1)
+       if (ek1 <= up*eg1) then
+          k1=k1+1
+          go to 345
+       endif
+      355 continue
+       ei1=ek1+ed-elo
+       if (ek1 < elo/10) ei1=ek1*(ed-elo+eb)/eb
+
+       !--get next point projected from high side
+      360 continue
+       if (k2 > nhi) exit cycle2
+       ek2 = aes(iofset(l3)+7+(k2-1)*2+1)
+       if (ek2 <= up*eg2) then
+          k2=k2+1
+          go to 360
+       endif
+       ei2=ek2-ehi+ed
+       if (ek2 < ehi-elo+eb) ei2=ek2*(ed-elo+eb)/(ehi-elo+eb)
+
+       !> do integrals to next point
+       if ((k1 == k1old).and.(k2 == k2old)) exit cycle2
+       ei=egp
+       if (ei1 < ei) ei=ei1
+       if (ei2 < ei) ei=ei2
+       !> ei - Smallest first scattering energy point among egp,ei1,ei2
+       if (abs(ei-egp) < egp*small) then
+         !> egp is the smallest, using egp1 and egp2
+         call aedi_resk(l2,egp1,fl1,nl,aes)
+         call aedi_resk(l3,egp2,fl2,nl,aes)
+       else if (abs(ei-ei1) < ei1*small) then
+         !> ei1 is the smallest, using ek1 directly.
+         !> ei2 is too large, using the scattering length at elo to
+         !> calculate scattering energy at ehi.
+         call aedi_resk(l2,ek1,fl1,nl,aes)
+         ee=ek1-elo+ehi
+         if (ek1 < eb*(1-small)) ee=ek1*(ehi-elo+eb)/eb
+         call aedi_resk(l3,ee,fl2,nl,aes)
+         eg1=ek1
+         eg2=ee
+       else if (abs(ei-ei2) < ei2*small) then
+         !> ei2 is the smallest, using ek2 directly.
+         !> ei1 is too large, using the scattering length at ehi to
+         !> calculate scattering energy at elo.
+         ee=ek2-ehi+elo
+         if (ee < eb*(1-small)) ee=ek2*eb/(ehi-elo+eb)
+         call aedi_resk(l2,ee,fl1,nl,aes)
+         call aedi_resk(l3,ek2,fl2,nl,aes)
+         eg2=ek2
+         eg1=ee
+       endif
+       f1=(ehi-ed)/(ehi-elo)
+       f2=(ed-elo)/(ehi-elo)
+       do il=1,nl
+         fi(il)=f1*fl1(il)+f2*fl2(il)
+       enddo
+       do il=1,nl
+         aed(il,i)=aed(il,i)+(fi(il)+fl(il))*(ei-eg_prev)*.5_kr
+         fl(il)=fi(il)
+       enddo
+       eg_prev=ei
+       if (ei < egp*(1-small)) then
+         k1old=k1
+         k2old=k2
+         cycle cycle2
+       else
+         exit cycle2
+       endif
+     enddo cycle2
+     !> close loop over energy groups
+     if (i < ngn.and.(k1 < nlo.or.k2 < nhi)) cycle cycle1
+     if (i < ngn.and.(k1 < nlo.or.k2 < nhi)) then
+       cycle cycle1
+     else
+       go to 365
+     endif
+   enddo cycle1
+   !> upper end of thermal table
+   aed(:nl,:ngn)=0._kr
+  365 continue
+   test = 0._kr
+   ng2=1
+   do loop_ng = 1,ng
+     test = test+aed(1,loop_ng)
+     if(aed(1,loop_ng).ne.0.0) ng2=loop_ng
+   enddo
+   if (abs(test) <= 0.8_kr .or. abs(test) >= 1.2_kr)then
+     write(errmsg,'("Normalization error for MF",i3," MT",i4,",e = ", &
+     &es12.5," sum = ", f8.5)')mfd,mtd,ed,test
+     call error('getrsk',errmsg,' ')
+   elseif (abs(test-1._kr) >= test_small .and. war_boll)then
+     write(errmsg,'("The probability is not normalized for MF",i3,    &
+     &" MT",i4,",e = ",es12.5," sum = ", f8.5)')mfd,mtd,ed,test
+     call mess('getrsk',errmsg,' ')
+     war_boll = .false.
+   endif
+  370 continue
+   deallocate(fi,fl2,fl1,fl)
+   idisc=0
+   enext=ehi
+   nq=0
+   return
+
+   contains
+
+!>------------------------------------------------------------------------------
+!> Interpolate for Legendre components of resonance elastic scattering at ee.
+!>
+!> @param this - in, list type data
+!> @param le - in, incident energy loop #
+!> @param ee - in, incident energy
+!> @param fl - in, result
+!> @param nl - in, legendre order
+!>------------------------------------------------------------------------------
+   subroutine aedi_resk(le,ee,fl,nl,aa)
+     ! externals
+     integer, intent(in) :: le,nl
+     real(kr), intent(in) :: ee
+     real(kr), intent(inout) :: fl(nl)
+     real(kr), intent(in)::aa(*)
+     ! internals
+     integer :: i,np,il,ip,iip
+     real(kr) :: x1,x2,y1,y2
+
+     fl(:nl)=0._kr
+     np=int(aa(iofset(le)+5))
+     ip=0
+     i=1
+     do while (ip.eq.0.and.i.lt.np)
+       if ((ee >= aa(iofset(le)+6+i*2)).and.(ee < aa(iofset(le)+8+i*2))) then
+         ip=i
+         exit
+       endif
+       i=i+1
+     enddo
+     iip=ip+1
+     if (ip == 0) return
+     x1 = aa(iofset(le)+6+ip*2)
+     x2 = aa(iofset(le)+6+iip*2)
+     y1 = aa(iofset(le)+7+ip*2)
+     y2 = aa(iofset(le)+7+iip*2)
+     call terp1(x1,y1,x2,y2,ee,fl(1),2)
+     if (fl(1) /= 0._kr) then
+        do il = 2,nl
+          y1 = aa(iofset(le)+13+2*np+(il-2)*np+ip)
+          y2 = aa(iofset(le)+13+2*np+(il-2)*np+iip)
+          call terp1(x1,y1,x2,y2,ee,fl(il),2)
+        enddo
+      endif
+    endsubroutine aedi_resk
+  end subroutine getrsk
+
+   subroutine ehapi(i,ner,ehigh,ap,rrf,ehi,api,eur)
+   integer, parameter :: ni=10
+   real(kr), parameter :: elw=4.0,ehw=9118.0
+   integer :: i,ner,ie,imin,imax,lru
+   real(kr) :: ehigh(ni,*),ap(ni,*),rrf(ni,*),ehi,api,eur,el,sum
+   eur=0
+   if (ner.eq.1) then
+     api=ap(i,1)
+   else if (ehigh(i,ner).lt.elw) then
+     api=ap(i,ner)
+   else if (ehigh(i,1).gt.ehw) then
+     api=ap(i,1)
+   else
+     if (ehigh(i,1).gt.elw) then
+       imin=1
+     else
+       imin=1
+       do while(ehigh(i,imin).le.elw)
+         imin=imin+1
+       enddo
+     endif
+     if (ehigh(i,ner).lt.ehw) then
+       imax=ner
+       ehigh(i,ner)=ehw
+     else
+       imax=imin
+       do while(ehigh(i,imax).lt.ehw)
+         imax=imax+1
+       enddo
+       ehigh(i,imax)=ehw
+     endif
+     sum=0.0
+     el=elw
+     do ie=imin,imax
+       sum=ap(i,ie)*log(ehigh(i,ie)/el)+sum
+       el=ehigh(i,ie)
+     enddo
+     api=sum/log(ehw/elw)
+   endif
+   do ie=1,ner
+    lru=int(rrf(i,ie))
+    if (lru.lt.2) then
+      ehi=ehigh(i,ie)
+    else
+      eur=ehigh(i,ie)
+    endif
+   enddo
+   return
+   end subroutine ehapi
+
+   subroutine getaps(lib,za0,aw,nis,nrr,zai,abni,awi,ehigh,ap,rrf)
+   use util   ! provides mess
+   use endf   ! provides endf routines and variables
+   integer, parameter :: ni=10,npp=100000
+   real(kr), parameter :: xmass=1.008665
+   integer :: lib,nis,nrr(ni)
+   real(kr) :: za0,aw,zai(ni),abni(ni),awi(ni),ehigh(ni,*),ap(ni,*),rrf(ni,*)
+   integer :: it(npp),i,ie,ii,jj,k,lfw,lru,lrf
+   integer :: l,ner,n1,n2,mat,mf,mt,ns,naps,njs,nls,nro,nb,nw
+   real(kr) :: x(npp),y(npp),abn,eh,zaii,sen,sum,za,a(6+npp)
+   !
+   call contio(lib,0,0,a,nb,nw)
+   za=a(1)
+   awr=a(2)
+   nis=nint(a(5))
+   n2=nint(a(6))
+   za0=za
+   aw=awr*xmass
+   call contio(lib,0,0,a,nb,nw)
+   zaii=a(1)
+   abn=a(2)
+   lfw=nint(a(4))
+   ner=nint(a(5))
+   n2=nint(a(6))
+   call contio(lib,0,0,a,nb,nw)
+   eh=a(2)
+   lru=nint(a(3))
+   lrf=nint(a(4))
+   nro=nint(a(5))
+   naps=nint(a(6))
+   if (lru.eq.0.and.nis.eq.1.and.ner.eq.1) then
+     !  only scattering radius is given
+     call contio(lib,0,0,a,nb,nw)
+     zai(1)=zaii
+     abni(1)=abn
+     nrr(1)=ner
+     ehigh(1,1)=eh
+     awi(1)=aw
+     ap(1,1)=a(2)
+     rrf(1,1)=float(lru)+0.1*float(lrf)
+   else
+     !  reso data
+     call skiprz(lib,-2)
+     do ii=1,nis
+      call contio(lib,0,0,a,nb,nw)
+      zaii=a(1)
+      abn=a(2)
+      lfw=nint(a(4))
+      ner=nint(a(5))
+      n2=nint(a(6))
+      zai(ii)=zaii
+      abni(ii)=abn
+      nrr(ii)=ner
+      do ie=1,ner
+       call contio(lib,0,0,a,nb,nw)
+       eh=a(2)
+       lru=nint(a(3))
+       lrf=nint(a(4))
+       nro=nint(a(5))
+       naps=nint(a(6))
+       ehigh(ii,ie)=eh
+       rrf(ii,ie)=float(lru)+0.1*float(lrf)
+       if (lru.eq.1) then
+       ! resolved resonances
+         if (lrf.lt.4) then
+           if (nro.ne.0) then
+             l=1
+             call tab1io(lib,0,0,a(1),nb,nw)
+             l=l+nw
+             if (l.gt.6*npp) call error('getaps',&
+             'storage for a exceeded(1)',' ')
+             do while (nb.ne.0)
+                call moreio(lib,0,0,a(l),nb,nw)
+                l=l+nw
+                if (l.gt.6*npp) call error('getaps',&
+                'storage for a exceeded(2)',' ')
+             enddo
+             n1=nint(a(5))
+             n2=nint(a(6))
+             if (6+2*n1+2*n2.gt.npp) call error('getaps',&
+             'storage for x and y exceeded(1)',' ')
+             do i=1,n2
+               x(i)=a(6+2*n1+2*i-1)
+               y(i)=a(6+2*n1+2*i)
+             enddo
+             sum=0.0
+             sen=0.0
+             do i=2,n2
+               sum=sum+0.5*(x(i)-x(i-1))*(y(i)+y(i-1))
+               sen=sen+    (x(i)-x(i-1))
+             enddo
+             sum=sum/sen
+             ap(ii,ie)=sum
+             call contio(lib,0,0,a,nb,nw)
+           else
+             call contio(lib,0,0,a,nb,nw)
+             ap(ii,ie)=a(2)
+           endif
+           nls=nint(a(5))
+           do k=1,nls
+            l=1
+            call listio(lib,0,0,a(1),nb,nw)
+            l=l+nw
+            if (l.gt.6*npp) call error('getaps',&
+            'storage for a exceeded(3)',' ')
+            do while (nb.ne.0)
+               call moreio(lib,0,0,a(l),nb,nw)
+               l=l+nw
+               if (l.gt.6*npp) call error('getaps',&
+               'storage for a exceeded(4)',' ')
+            enddo
+            awi(ii)=a(1)*xmass
+           enddo
+         else if(lrf.eq.4) then
+           if (nro.ne.0) then
+             l=1
+             call tab1io(lib,0,0,a(1),nb,nw)
+             l=l+nw
+             if (l.gt.6*npp) call error('getaps',&
+             'storage for a exceeded(5)',' ')
+             do while (nb.ne.0)
+                call moreio(lib,0,0,a(l),nb,nw)
+                l=l+nw
+                if (l.gt.6*npp) call error('getaps',&
+                'storage for a exceeded(6)',' ')
+             enddo
+             n1=nint(a(5))
+             n2=nint(a(6))
+             if (6+2*n1+2*n2.gt.npp) call error('getaps',&
+             'storage for x and y exceeded(2)',' ')
+             do i=1,n2
+               x(i)=a(6+2*n1+2*i-1)
+               y(i)=a(6+2*n1+2*i)
+             enddo
+             sum=0.0
+             do i=2,n2
+               sum=0.5*(x(i)-x(i-1))*(y(i)/x(i)+y(i-1)/x(i-1))+sum
+             enddo
+             ap(ii,ie)=sum/log(x(n2)/x(1))
+             call contio(lib,0,0,a,nb,nw)
+           else
+             call contio(lib,0,0,a,nb,nw)
+             ap(ii,ie)=a(2)
+           endif
+           nls=nint(a(5))
+           l=1
+           call listio(lib,0,0,a(1),nb,nw)
+           l=l+nw
+           if (l.gt.6*npp) call error('getaps',&
+           'storage for a exceeded(7)',' ')
+           do while (nb.ne.0)
+              call moreio(lib,0,0,a(l),nb,nw)
+              l=l+nw
+              if (l.gt.6*npp) call error('getaps',&
+              'storage for a exceeded(8)',' ')
+           enddo
+           awi(ii)=a(1)*xmass
+           do jj=1,nls
+            call contio(lib,0,0,a,nb,nw)
+            njs=nint(a(5))
+            do k=1,njs
+             l=1
+             call listio(lib,0,0,a(1),nb,nw)
+             l=l+nw
+             if (l.gt.6*npp) call error('getaps',&
+             'storage for a exceeded(9)',' ')
+             do while (nb.ne.0)
+                call moreio(lib,0,0,a(l),nb,nw)
+                l=l+nw
+                if (l.gt.6*npp) call error('getaps',&
+                'storage for a exceeded(10)',' ')
+             enddo
+            enddo
+           enddo
+         else
+           call error('getaps',&
+           'this program can not work with grm(irf=5) or hrf(irf=6)',' ')
+         endif
+       else if (lru.eq.2) then
+         ! unresolved resonances
+         if(lrf.eq.1) then
+           if(lfw.eq.0) then
+             call contio(lib,0,0,a,nb,nw)
+             nls=nint(a(5))
+             ap(ii,ie)=a(2)
+             do k=1,nls
+               l=1
+               call listio(lib,0,0,a(1),nb,nw)
+               l=l+nw
+               if (l.gt.6*npp) call error('getaps',&
+               'storage for a exceeded(11)',' ')
+               do while (nb.ne.0)
+                  call moreio(lib,0,0,a(l),nb,nw)
+                  l=l+nw
+                  if (l.gt.6*npp) call error('getaps',&
+                  'storage for a exceeded(12)',' ')
+               enddo
+               awi(ii)=a(1)*xmass
+             enddo
+           else
+             l=1
+             call listio(lib,0,0,a(1),nb,nw)
+             l=l+nw
+             if (l.gt.6*npp) call error('getaps',&
+             'storage for a exceeded(13)',' ')
+             do while (nb.ne.0)
+                call moreio(lib,0,0,a(l),nb,nw)
+                l=l+nw
+                if (l.gt.6*npp) call error('getaps',&
+                'storage for a exceeded(14)',' ')
+             enddo
+             ap(ii,ie)=a(2)
+             do k=1,nls
+               call contio(lib,0,0,a,nb,nw)
+               njs=nint(a(5))
+               awi(ii)=a(1)*xmass
+               do jj=1,njs
+                 l=1
+                 call listio(lib,0,0,a(1),nb,nw)
+                 l=l+nw
+                 if (l.gt.6*npp) call error('getaps',&
+                 'storage for a exceeded(15)',' ')
+                 do while (nb.ne.0)
+                    call moreio(lib,0,0,a(l),nb,nw)
+                    l=l+nw
+                    if (l.gt.6*npp) call error('getaps',&
+                    'storage for a exceeded(16)',' ')
+                 enddo
+               enddo
+             enddo
+           endif
+         else
+           call contio(lib,0,0,a,nb,nw)
+           nls=nint(a(4))
+           ap(ii,ie)=a(2)
+           do k=1,nls
+             call contio(lib,0,0,a,nb,nw)
+             awi(ii)=a(1)*xmass
+             do jj=1,njs
+               l=1
+               call listio(lib,0,0,a(1),nb,nw)
+               l=l+nw
+               if (l.gt.6*npp) call error('getaps',&
+               'storage for a exceeded(17)',' ')
+               do while (nb.ne.0)
+                  call moreio(lib,0,0,a(l),nb,nw)
+                  l=l+nw
+                  if (l.gt.6*npp) call error('getaps',&
+                  'storage for a exceeded(18)',' ')
+               enddo
+             enddo
+           enddo
+         endif
+       else if (lru.eq.0.and.nis.gt.1)then
+         call contio(lib,0,0,a,nb,nw)
+         ap(ii,ie)=a(2)
+       endif
+     enddo
+    enddo
+   endif
+   return
+   end subroutine getaps
 
    subroutine cm2lab(inow,jnow,lnow,c,nl,lang,lep,max)
    !-------------------------------------------------------------------

@@ -1,5 +1,5 @@
 module electm
-   ! provides subroutine electr for NJOY2012
+   ! provides subroutine electr for NJOY2016
    use locale
    implicit none
    private

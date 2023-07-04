@@ -21,6 +21,8 @@ program njoy
 ! unresr...compute effective pointwise self-shielded cross sections in
 !          the unresolved energy range.
 !
+! reskr....resonance elastic scattering kernel processing
+!
 ! heatr....compute heat production cross sections (kerma) and damage
 !          energy production.
 !
@@ -124,6 +126,7 @@ program njoy
    use reconm  ! provides reconr
    use broadm  ! provides broadr
    use unresm  ! provides unresr
+   use reskm   ! provides reskr
    use heatm   ! provides heatr
    use thermm  ! provides thermr
    use groupm  ! provides groupr
@@ -208,6 +211,9 @@ program njoy
 
       case('unresr') ! compute unresolved resonance cross-sections
          call unresr
+
+      case('reskr')  ! resonance elastic scattering kernel processing.
+         call reskr
 
       case('heatr')  ! compute heating and damage
          call heatr

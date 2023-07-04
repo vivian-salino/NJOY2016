@@ -216,7 +216,12 @@ contains
    else if (mfh.eq.5) then
       call file5(nin,nout,nscr,a)
    else if (mfh.eq.6) then
-      call file6(nin,nout,nscr,a)
+      if (mth.eq.300) then
+         ! resk reaction type
+         call file6r(nin,nout,nscr,a)
+      else
+         call file6(nin,nout,nscr,a)
+      endif
    else if (mfh.eq.7) then
       call file7(nin,nout,nscr,a)
    else if (mfh.eq.8) then
@@ -895,6 +900,38 @@ contains
    enddo
    return
    end subroutine file5
+
+   subroutine file6r(nin,nout,nscr,a)
+   !-------------------------------------------------------------------
+   ! Convert mode of File 6.
+   ! Resk data structure
+   !-------------------------------------------------------------------
+   use endf ! provides endf routines and variables
+   ! externals
+   integer::nin,nout,nscr
+   real(kr)::a(*)
+   ! internals
+   integer::nl,ne,il,ie,nb,nw
+   real(kr)::e1
+
+   nl=l1h
+   call tab2io(nin,nout,nscr,a,nb,nw)
+   ne=n2h
+   do ie=1,ne
+      call tab1io(nin,nout,nscr,a,nb,nw)
+      e1=c2h
+      do while (nb.ne.0)
+         call moreio(nin,nout,nscr,a,nb,nw)
+      enddo
+      do il=1,nl
+         call listio(nin,nout,nscr,a,nb,nw)
+         do while (nb.ne.0)
+            call moreio(nin,nout,nscr,a,nb,nw)
+         enddo
+      enddo
+   enddo
+   return
+   end subroutine file6r
 
    subroutine file6(nin,nout,nscr,a)
    !-------------------------------------------------------------------

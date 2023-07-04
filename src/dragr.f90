@@ -1,5 +1,5 @@
 module dragm
-   ! provides subroutine dragr for NJOY2012
+   ! provides subroutine dragr for NJOY2016
    use locale
    use xsmm
    implicit none
@@ -553,7 +553,7 @@ contains
    use endf   ! provides endf routines and variables
    use util   ! provides error
    integer :: maxa,maxgr,maxnl,maxnz,maxtmp,maxedi
-   parameter (maxa=2000,maxgr=400,maxnl=8,maxnz=30,maxtmp=10,maxedi=14)
+   parameter (maxa=2000,maxgr=400,maxnl=8,maxnz=30,maxtmp=10,maxedi=15)
    integer ngen,matno,ng,igres0,igres1,ipflag,nbesp,iesp(nbesp+1)
    real(kr) rv(maxgr,maxnl,maxnz),flux(maxgr,maxnl,maxnz),aa(6), &
    & deltau(maxgr),rv2(maxgr,maxnl,1),rm2(maxgr,maxgr,maxnl,1)
@@ -565,11 +565,11 @@ contains
    & loc,nb,ng0,nl,nl2,nlgar,ntmp,nw,nz,nz0,nz0bis,nzgar
    real(kr) temps(maxtmp),ytemp
    integer, save, dimension(maxedi) :: malist= &
-   & (/ 1,2,4,16,17,18,28,37,102,103,104,105,107,108 /)
+   & (/ 1,2,4,5,16,17,18,28,37,102,103,104,105,107,108 /)
    character(len=8), save, dimension(maxedi) :: namedi= &
-   & (/ 'NTOT0   ','NELAS   ','NINEL   ','N2N     ','N3N     ','NFTOT   ', &
-   &    'NNP     ','N4N     ','NG      ','NP      ','ND      ','NT      ', &
-   &    'NA      ','N2A     ' /)
+   & (/ 'NTOT0   ','NELAS   ','NINEL   ','NX      ','N2N     ','N3N     ', &
+   &    'NFTOT   ','NNP     ','N4N     ','NG      ','NP      ','ND      ', &
+   &    'NT      ','NA      ','N2A     ' /)
    real(kr),allocatable,dimension(:) :: scr
    !
    ! recover the new dilution values.
@@ -1400,7 +1400,7 @@ contains
    use util   ! provides timer,openz,repoz,error
    integer :: maxa,maxgr,maxnl,maxnz,maxmat,maxgar
    parameter (maxa=2000)
-   parameter(maxgr=400,maxnl=8,maxnz=30,maxmat=45,maxgar=maxgr*maxgr)
+   parameter(maxgr=400,maxnl=8,maxnz=30,maxmat=46,maxgar=maxgr*maxgr)
    integer nin,matd,nz0,ijj(maxgr),njj(maxgr),igfirs(maxnl),iglast(maxnl), &
    & ipflag
    logical exist,exist2,exist3,lfind
@@ -1412,7 +1412,7 @@ contains
    real gar(maxgar)
    real(kr),allocatable,dimension(:) :: scr
    integer,save,dimension(maxmat) :: mtlist= &
-   & (/ 2,16,17,37,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,&
+   & (/ 2,5,16,17,37,51,52,53,54,55,56,57,58,59,60,61,62,63,64,65,66,67,68,69,&
    & 70,71,72,73,74,75,76,77,78,79,80,81,82,83,84,85,86,87,88,89,90,91 /)
    !
    ! recover the number of thermal-corrected groups (ngther).

@@ -556,7 +556,7 @@ contains
    integer::ll,ij,itype,n1d,n2d,ivcon,nw,ihvcon,ivdat,l
    integer::nfg,nlg,nwmcr,nwdc,n,ihmcon,lord,m,jj,k
    character(6),parameter::hfile='matxs '
-   nsubmx=100
+   nsubmx=500
    maxord=5
    maxw=5000
 
@@ -966,6 +966,7 @@ contains
    character(8),parameter::hnthr='ntherm'
    integer,parameter::mtt1=221
    integer,parameter::mtt2=250
+   integer,parameter::mtt3=300
    real(kr),parameter::eps=1.0e-06_kr
    lz=6
 
@@ -1171,8 +1172,9 @@ contains
    go to 420
   360 continue
    if (ig.gt.1.and.ig.lt.iglt) iglt=ig
-   if (htyp.eq.hnthr.and.(mth.lt.mtt1.or.mth.gt.mtt2)) go to 420
+   if (htyp.eq.hnthr.and.(mth.lt.mtt1.or.mth.gt.mtt2).and.mth.ne.mtt3) go to 420
    if (htyp.ne.hnthr.and.(mth.ge.mtt1.and.mth.le.mtt2)) go to 420
+   if (htyp.ne.hnthr.and.mth.eq.mtt3) go to 420
    if (htyp.eq.hnthr.and.mfh.ge.90) go to 420
    if (mfv.eq.3.and.mfh.gt.90) go to 365
    if (mfh.ne.mfv.and.mfh.ne.(mfv+2).and.&
@@ -1489,9 +1491,15 @@ contains
 
    !--special njoy thermal mt numbers
   190 continue
-   if (mt.gt.num4) go to 200
+   if (mt.gt.num4) go to 195
    if (mt.lt.221) go to 300
    write(strng,'(a6)') h4(mt-220)
+   go to 350
+
+   !--resonant elastic scattering kernel
+  195 continue
+   if (mt.ne.300) go to 200
+   strng='resk  '
    go to 350
 
    !--miscellaneous quantities
