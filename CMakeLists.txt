@@ -171,6 +171,8 @@ add_library( njoy ${njoy_library_linkage}
              "${CMAKE_CURRENT_SOURCE_DIR}/src/viewr.f90"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/wimsr.f90"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/dragr.f90"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/electr.f90"
+             "${CMAKE_CURRENT_SOURCE_DIR}/src/reskr.f90"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/filem.f90"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/kdim.f90"
              "${CMAKE_CURRENT_SOURCE_DIR}/src/xsmm.f90" )
