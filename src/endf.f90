@@ -237,7 +237,7 @@ contains
       if (n1h.le.0) then
          write(strng,'(" illegal TAB1, nr<=0 for mf/mt = ",i2,"/",i3)')&
                       mfh,mth
-         call error('endf',strng,'')
+         call mess('endf',strng,'')
       endif
       a(3)=l1h
       a(4)=l2h
@@ -252,7 +252,7 @@ contains
       if (n1h.le.0) then
          write(strng,'(" illegal TAB1, nr<=0 for mf/mt = ",i2,"/",i3)')&
                       mfh,mth
-         call error('endf',strng,'')
+         call mess('endf',strng,'')
       endif
       nb=6+2*n1h+2*n2h
       call tablio(nin,0,0)
@@ -287,7 +287,7 @@ contains
       if (nbt(n1h).ne.n2h) then
          write(strng,'(" illegal TAB1, nbt(nr)/=np for mf/mt = ",&
                      &i2,"/",i3)')mfh,mth
-         call error('endf',strng,'')
+         call mess('endf',strng,'')
       endif
    endif
 
