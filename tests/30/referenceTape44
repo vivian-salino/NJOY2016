@@ -48,7 +48,6 @@ Photo-atomic data from ENDF/B-VIII.0
  3.00000E+02 1.00000E+10     2     0     1    26
  0.00000E+00 1.00000E+12     3     7     3    28
  6d     nwt0    ntot0   nelas   ng      mubar   xi      gamma   invel   
-
      1     1     1     1     1     1     1     1   175   175   175   175
    175   174   174   175
  7d          2.30700E+06 4.28000E+05 4.18000E+05 8.04000E+05 7.65000E+05
