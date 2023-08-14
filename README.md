@@ -24,7 +24,7 @@ cd tests
 make test
 ```
 
-All tests should pass except tests 1, 11, 25 and 32 (see [commit 141a8a0](https://github.com/IRSN/PyNjoy2016/commit/141a8a095877f7cb4ff3b6d3c9a42aa07019e270) for more details). Draglib and eventually ACE files can then be produced with:
+All tests should pass. Draglib and eventually ACE files can then be produced with:
 ```
 cd ../python
 python jeff3p3_shem295.py
@@ -39,7 +39,7 @@ Other nuclear data evaluations and other energy meshes can be processed using th
 ## Documentation
 The documentation for NJOY2016 is found in the [NJOY2016-manual](https://github.com/njoy/NJOY2016-manual) repository. There, you can find a [pre-compiled PDF](https://github.com/njoy/NJOY2016-manual/raw/master/njoy16.pdf) of the NJOY2016 manual.
 
-The LaTeX documentation for DRAGR is found [here](http://www.polymtl.ca/merlin/downloads/arch_njoy2012_epm_mp_up137.tgz). There, you can find a [pre-compiled PDF](http://www.polymtl.ca/merlin/downloads/njoy12_rev.pdf) of the DRAGR manual.
+The LaTeX documentation for DRAGR, RESKR and ELECTR modules is found [here](http://www.polymtl.ca/merlin/downloads/arch_njoy2012_epm_mp_up137.tgz). There, you can find a [pre-compiled PDF](http://www.polymtl.ca/merlin/downloads/njoy12_rev.pdf) of this manual.
 
 A tutorial for PyNjoy automation scripts is found [here](http://www.polymtl.ca/merlin/downloads/IGE361.pdf).
 
