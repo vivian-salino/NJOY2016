@@ -24,7 +24,7 @@ cd tests
 make test
 ```
 
-All tests should pass. Draglib and eventually ACE files can then be produced with:
+All tests should succeed in approximately 90 minutes. Draglib and eventually ACE files can then be produced with:
 ```
 cd ../python
 python jeff3p3_shem295.py
