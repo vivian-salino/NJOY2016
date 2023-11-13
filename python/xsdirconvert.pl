@@ -229,7 +229,7 @@ while ($tmp = <INPUT>)
 
     $T = $erg*1.1604518025685E+10;
 
-    # Split zaid to ZA and suffix (suffix may begin with anything, including for example "m" for metastable):
+    # Split zaid to ZA and suffix
     if ( $zaid =~  m{^(\d+)(\D.*)} )
     {
         ($ZA, $suffix) = ($1, $2);
@@ -258,7 +258,7 @@ while ($tmp = <INPUT>)
 	$A = substr($ZA, 1,3);
     }
 
-    # Find ZA in awr list and override value
+    # Find ZA in awr0 list and override value
 
     for ($i = 0; $i < $nawr; $i++)
     {
@@ -405,14 +405,14 @@ while ($tmp = <INPUT>)
 	# Print data:
 
 	printf("%11s %10s  %d %6d %2d %11.6f %4.0f  0  %s\n", $zaid, $zaid,
-	       $type, $ZA - $divI*100, $I, $AW, $T, $acename);
+	       $type, $ZA, $I, $AW, $T, $acename);
 
 	# Print alias if not thermal scattering data:
 
 	if ($type != 3)
 	{
 	    printf("%11s %10s  %d %6d %2d %11.6f %4.0f  0  %s\n", $alias,
-		   $zaid, $type, $ZA - $divI*100, $I, $AW, $T, $acename);
+		   $zaid, $type, $ZA, $I, $AW, $T, $acename);
 	}
 
 	close(fp);

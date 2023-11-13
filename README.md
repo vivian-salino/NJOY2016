@@ -43,5 +43,10 @@ The LaTeX documentation for DRAGR, RESKR and ELECTR modules is found [here](http
 
 A tutorial for PyNjoy automation scripts is found [here](http://www.polymtl.ca/merlin/downloads/IGE361.pdf).
 
+## Citing
+
+If you use PyNjoy2016 in your research, please consider giving proper attribution by citing:
++ V. Salino and A. Hébert, "[PyNjoy2016: an Open Source System for Producing Cross Sections Libraries for DRAGON5 and SERPENT2](https://irsn.hal.science/irsn-04095482)" In *International Conference on Mathematics & Computational Methods Applied to Nuclear Science & Engineering (M&C)*, Niagara Falls, Canada (2023).
+
 ## License and Copyright
 This software is distributed and copyrighted according to the [LICENSE](LICENSE) file.

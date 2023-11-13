@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 # File to which xsdir and xsdata information will be stored
 xsdir=../output/Universal.xsdir
@@ -12,40 +12,38 @@ rm -f $xsdir $xsdata
 echo "datapath=."            > $xsdir
 echo "atomic weight ratios" >> $xsdir
 echo "directory"            >> $xsdir
-for xsdir_individual in $(find ../output/*/* -not -path "*shem*" -name "*.xsdir")
+for xsdir_individual in $(find ../output/*/*.xsdir)
+#for xsdir_individual in $(find ../output/*/*tsl*.xsdir -name "*.xsdir")
+#for xsdir_individual in $(find ../output/*/61348_900K.xsdir -name "*.xsdir")
+#for xsdir_individual in $(find ../output/*/1001lwtr_294K*.xsdir -name "*.xsdir")
 do
-#   Change default "filename" (3rd column) and replace "route" with a zero (4th column)
-    xsdirline=$(awk -F '[[:space:]]+' '{print $2, $3, FILENAME, "0", $6, $7, $8, $9, $10, $11}' $xsdir_individual)
-#   xsdir file shall point toward ace filename
-    xsdirline=$(sed 's/\.xsdir/.ace/' <<< $xsdirline)
-#   For the continuous-energy (non-TSL) ace files, capture the eventual TSL name
-#   In every other cases, tsl variable should be empty
-    tsl=$(awk -F/ '{if ($0 !~ /tsl/) print $NF}' <<< $xsdirline)
-    tsl=$(echo $tsl | cut -d"_" -f1 | sed 's/^[0-9]\+//g' )
-#   Capture random sampling number in xsdir path
-    lastdir=$(echo $xsdirline | rev | cut -d/ -f2 | rev)
+    # ACE path in the same as XSDIR path, only substituting filename extension
+    ACE_path=$(echo $xsdir_individual | sed 's/.xsdir/.ace/')
+    # Retrieve ZAID in the XSDIR filename (i.e. in "ZAID_temperature.xsdir",
+    # before "_"), where the 3rd digit is equal to 3 for metastable/isomeric
+    # state (MCNP convention). Also, non-digits can be present and represent
+    # TSL name (lwtr, ...) for both the TSL file itself (e.g. ".02t") and the
+    # associated ACE (continuous-energy, e.g. ".02c") file.
+    ZAID=$(basename $xsdir_individual | cut -d"_" -f1)
+    # For TSL files (e.g. "02t"), keep only its name/letters and not the ZAID numbers
+    if [[ "$xsdir_individual" == *"tsl"* ]]; then
+        ZAID=$(echo $ZAID | sed 's/[0-9]//g')
+    fi
+    # Capture random sampling number in xsdir path
+    lastdir=$(dirname $xsdir_individual | rev | cut -d"/" -f1 | rev)
     if [[ $lastdir =~ _[0-9]{3} ]]
     then
         # If the directory's name containing the ACE file ends up with "_ddd" (3 digits), capture "ddd"
-        rand=$(echo $lastdir | rev | cut -d_ -f1 | rev )
+        rand="_"$(echo $lastdir | rev | cut -d_ -f1 | rev )
     else
         # Otherwise, it's not considered to be a randomly sampled ACE file
         rand=""
     fi
-    xsdirline=$(awk '{
-#   Dealing with metastable isotopes: if ace filenames contains a 3 in third position, then add a "m" after the ZAID identifier
-    if ($3 ~ /\/([0-9])[0-9]3[0-9][0-9][^/]*.ace$/)
-        sub("\\.","m.",$1);
-#   Dealing with continuous-energy ace that are associated to TSL files
-    sub("\\.","'$tsl'.",$1);
-#   Dealing with TENDL random sampling
-    if ($3 ~ /TENDL/)
-        sub("\\.","_'$rand'.",$1);
-#   Dealing with SANDY random sampling
-    if ($3 ~ /SANDY/)
-        sub("\\.","_'$rand'.",$1);
-    print $0
-    }' <<< $xsdirline)
+    # Retrieve temperature suffix (such as "09c" or "02t") in the first column of XSDIR
+    suffix=$(cat $xsdir_individual | awk '{print $1}' | cut -d"." -f2)
+    # First XSDIR field shall be : ZAID(_rand).suffix
+    First_Field=$ZAID$rand"."$suffix
+    xsdirline=$(awk -F '[[:space:]]+' '{print "'$First_Field'", $3, "'$ACE_path'", "0", $6, $7, $8, $9, $10, $11}' $xsdir_individual)
     # Write to output file
     echo $xsdirline >> $xsdir
     # Change accordingly the first line of the ace file to match the (eventually new) xsdir identifier
